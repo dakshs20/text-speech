@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Language Audio Translator - Batch Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            opacity: 1;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        textarea {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+        }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 4px;
+            cursor: pointer;
+            color: #4b5563;
+        }
+        .copy-btn:hover {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="card w-full max-w-5xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Indian Language Audio Translator</h1>
+            <p class="text-gray-600 mt-2">Powered by Lakhu</p>
+        </div>
+
+        <!-- Step 1: Upload Files -->
+        <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">Step 1: Upload Your Audio Files (up to 5)</h2>
+            <label for="audio-files" class="btn btn-secondary w-full">
+                <i data-lucide="upload-cloud" class="mr-2 h-5 w-5"></i>
+                Choose Audio Files (.mp3, .wav, .m4a, etc.)
+            </label>
+            <input type="file" id="audio-files" class="hidden" accept="audio/*" multiple>
+            
+            <div id="file-list" class="mt-4 space-y-2"></div>
+            
+            <div class="flex flex-col sm:flex-row justify-center items-center mt-4 gap-4">
+                <button id="process-btn" class="btn btn-primary w-full sm:w-auto">
+                    <i data-lucide="zap" class="mr-2 h-5 w-5"></i>
+                    Process All Files
+                </button>
+                 <button id="clear-btn" class="btn btn-secondary w-full sm:w-auto bg-red-200 text-red-800 hover:bg-red-300">
+                    <i data-lucide="trash-2" class="mr-2 h-5 w-5"></i>
+                    Clear Files
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Results -->
+        <div id="results-container" class="space-y-6">
+            <!-- Results will be dynamically inserted here -->
+        </div>
+        
+        <!-- Global Status Indicator -->
+        <div id="status" class="text-center text-gray-600 h-6 mt-4 font-semibold"></div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const audioFileInput = document.getElementById('audio-files');
+        const processBtn = document.getElementById('process-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const statusDiv = document.getElementById('status');
+        const fileListDiv = document.getElementById('file-list');
+        const resultsContainer = document.getElementById('results-container');
+        
+        let selectedFiles = [];
+        let currentAudio = null; // Holds the currently playing Audio object
+        let currentlyPlayingButtonId = null; // Tracks the ID of the playing button
+
+        // --- IMPORTANT: Service Key (Keep this secure and do not expose in production) ---
+        const SERVICE_KEY = 'AIzaSyDIamJ6hbHD_KAddCB2MMteJP415qoyf2E';
+
+        // --- Event Listeners ---
+        audioFileInput.addEventListener('change', handleFileSelection);
+        processBtn.addEventListener('click', processAllFiles);
+        clearBtn.addEventListener('click', clearAllFiles);
+
+        // --- Core Functions ---
+        
+        function handleFileSelection(event) {
+            stopSpeaking(); // Stop any audio if new files are selected
+            const files = Array.from(event.target.files).slice(0, 5); // Limit to 5 files
+            selectedFiles = files;
+            renderFileList();
+            resultsContainer.innerHTML = '';
+            updateStatus(`${selectedFiles.length} file(s) selected. Ready to process.`, 'success');
+        }
+
+        function clearAllFiles() {
+            stopSpeaking();
+            selectedFiles = [];
+            audioFileInput.value = ''; // Reset the file input
+            renderFileList();
+            resultsContainer.innerHTML = '';
+            updateStatus('Selection cleared.', 'info');
+        }
+
+        function renderFileList() {
+            fileListDiv.innerHTML = '';
+            if (selectedFiles.length === 0) {
+                fileListDiv.innerHTML = '<p class="text-sm text-gray-500 text-center">No files chosen.</p>';
+                clearBtn.style.display = 'none';
+                return;
+            }
+            clearBtn.style.display = 'inline-flex';
+            selectedFiles.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'flex items-center justify-between p-2 bg-white border rounded-md text-sm';
+                fileElement.innerHTML = `
+                    <div class="flex items-center truncate">
+                        <i data-lucide="file-audio-2" class="h-5 w-5 mr-2 text-indigo-500"></i>
+                        <span class="font-medium text-gray-700 truncate">${file.name}</span>
+                    </div>
+                    <span id="file-status-${index}" class="text-gray-500 font-medium">Pending</span>
+                `;
+                fileListDiv.appendChild(fileElement);
+            });
+            lucide.createIcons();
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function processAllFiles() {
+            if (selectedFiles.length === 0) {
+                updateStatus('Please select audio files first.', 'error');
+                return;
+            }
+             if (!SERVICE_KEY || SERVICE_KEY.includes('YOUR_API_KEY')) {
+                 updateStatus('Service key is missing.', 'error');
+                 return;
+            }
+            
+            stopSpeaking();
+            processBtn.disabled = true;
+            clearBtn.disabled = true;
+            resultsContainer.innerHTML = '';
+
+            updateStatus('Processing all files in parallel...', 'loading');
+
+            const processingPromises = selectedFiles.map((file, index) => processSingleFile(file, index));
+
+            await Promise.all(processingPromises);
+            
+            updateStatus('All files processed!', 'success');
+            processBtn.disabled = false;
+            clearBtn.disabled = false;
+        }
+
+        async function processSingleFile(file, index) {
+            const fileStatusSpan = document.getElementById(`file-status-${index}`);
+            if (fileStatusSpan) {
+                fileStatusSpan.textContent = 'Processing...';
+                fileStatusSpan.className = 'text-blue-600 font-medium';
+            }
+
+            try {
+                const audioBytes = await fileToBase64(file);
+                const mimeType = file.type;
+
+                const apiHost = 'generativelanguage.googleapis.com';
+                const model = 'gemini-1.5-pro-latest';
+                const apiUrl = `https://${apiHost}/v1beta/models/${model}:generateContent?key=${SERVICE_KEY}`;
+
+                const prompt = `You are a world-class transcription and translation expert specializing in Indian languages. Your task is to process an audio file with the highest degree of accuracy. Listen to the entire audio file very carefully, even if there is background noise.
+
+1.  **Transcribe:** Provide a perfect, word-for-word transcription of everything spoken in the original language. If there are multiple speakers, label them as "Speaker 1:", "Speaker 2:", etc.
+2.  **Separator:** After the full transcription, write '---' on a new line.
+3.  **Translate:** Provide a high-quality, fluent, and natural-sounding translation into Hindi, capturing the original intent, emotion, and context.
+
+Do not add any conversational filler or introductory text to your response.`;
+
+                const requestBody = {
+                  "contents": [{ "parts": [{ "text": prompt }, { "inline_data": { "mime_type": mimeType, "data": audioBytes } }] }],
+                  "safetySettings": [
+                    { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
+                    { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+                    { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+                    { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
+                  ]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                });
+                
+                const result = await response.json();
+
+                if (result.error) throw new Error(result.error.message);
+                
+                if (result.candidates && result.candidates[0].content) {
+                    const responseText = result.candidates[0].content.parts[0].text;
+                    const parts = responseText.split('---');
+                    const transcription = parts[0]?.trim() || 'No transcription found.';
+                    const translation = parts[1]?.trim() || 'No translation found.';
+                    createResultCard(file, index, transcription, translation, true);
+                     if (fileStatusSpan) {
+                        fileStatusSpan.textContent = 'Complete';
+                        fileStatusSpan.className = 'text-green-600 font-medium';
+                    }
+                } else {
+                     if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
+                         throw new Error("Response blocked for safety reasons.");
+                     } else {
+                         throw new Error("Invalid or empty response from the processing service.");
+                     }
+                }
+            } catch (error) {
+                console.error(`Error processing ${file.name}:`, error);
+                createResultCard(file, index, 'Error processing file.', `Service Error: ${error.message}`, false);
+                if (fileStatusSpan) {
+                    fileStatusSpan.textContent = 'Error';
+                    fileStatusSpan.className = 'text-red-600 font-medium';
+                }
+            }
+        }
+
+        function createResultCard(file, index, transcription, translation, isSuccess) {
+            const resultCard = document.createElement('div');
+            resultCard.className = 'p-4 border rounded-lg bg-white shadow';
+            
+            let listenButtonHtml = '';
+            if (isSuccess) {
+                 listenButtonHtml = `<button id="play-btn-${index}" class="btn btn-primary bg-green-600 hover:bg-green-700 mt-4 w-full sm:w-auto">
+                    <i data-lucide="volume-2" class="mr-2 h-5 w-5"></i>Listen to Hindi Translation</button>`;
+            }
+
+            resultCard.innerHTML = `
+                <h3 class="font-bold text-lg text-gray-800 mb-3">${file.name}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative">
+                        <label class="font-semibold text-gray-700 block mb-1">Original Transcription</label>
+                        <textarea id="transcription-text-${index}" rows="6" class="resize-none pr-10" readonly>${transcription}</textarea>
+                        <button onclick="copyToClipboard('transcription-text-${index}', this)" class="copy-btn" title="Copy Transcription"><i data-lucide="copy" class="h-4 w-4"></i></button>
+                    </div>
+                    <div class="relative">
+                        <label class="font-semibold text-gray-700 block mb-1">Hindi Translation</label>
+                        <textarea id="translation-text-${index}" rows="6" class="resize-none pr-10" readonly>${translation}</textarea>
+                        <button onclick="copyToClipboard('translation-text-${index}', this)" class="copy-btn" title="Copy Translation"><i data-lucide="copy" class="h-4 w-4"></i></button>
+                    </div>
+                </div>
+                <div class="text-center">${listenButtonHtml}</div>
+            `;
+            resultsContainer.appendChild(resultCard);
+            if (isSuccess) {
+                document.getElementById(`play-btn-${index}`).addEventListener('click', () => handlePlayStop(index));
+            }
+            lucide.createIcons();
+        }
+
+        function handlePlayStop(index) {
+            const buttonId = `play-btn-${index}`;
+            if (currentlyPlayingButtonId === buttonId && currentAudio) {
+                stopSpeaking();
+            } else {
+                stopSpeaking();
+                const textToSpeak = document.getElementById(`translation-text-${index}`).value;
+                speakHindiText(textToSpeak, buttonId);
+            }
+        }
+        
+        async function speakHindiText(textToSpeak, buttonId) {
+            if (!textToSpeak || textToSpeak.includes('No translation found.')) {
+                updateStatus('Nothing to speak.', 'error');
+                return;
+            }
+            
+            const playButton = document.getElementById(buttonId);
+            playButton.disabled = true;
+            playButton.innerHTML = '<i data-lucide="loader-2" class="animate-spin mr-2 h-5 w-5"></i>Synthesizing...';
+            lucide.createIcons();
+
+            const ttsHost = 'texttospeech.googleapis.com';
+            const apiUrl = `https://${ttsHost}/v1/text:synthesize?key=${SERVICE_KEY}`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        input: { text: textToSpeak },
+                        voice: { languageCode: 'hi-IN', name: 'hi-IN-Neural2-B' },
+                        audioConfig: { audioEncoding: 'MP3' }
+                    })
+                });
+
+                const result = await response.json();
+                if (result.error) throw new Error(result.error.message);
+
+                if (result.audioContent) {
+                    const audio = new Audio(`data:audio/mp3;base64,${result.audioContent}`);
+                    currentAudio = audio;
+                    currentlyPlayingButtonId = buttonId;
+                    
+                    audio.onplay = () => {
+                         playButton.disabled = false;
+                         playButton.innerHTML = '<i data-lucide="square" class="mr-2 h-5 w-5"></i>Stop Speaking';
+                         playButton.classList.replace('bg-green-600', 'bg-red-600');
+                         playButton.classList.replace('hover:bg-green-700', 'hover:bg-red-700');
+                         lucide.createIcons();
+                    }
+                    audio.onended = stopSpeaking;
+                    audio.onerror = () => {
+                        updateStatus('Error playing audio.', 'error');
+                        stopSpeaking();
+                    }
+                    audio.play();
+                } else {
+                    throw new Error("No audio content received.");
+                }
+
+            } catch (error) {
+                 console.error('Speech synthesis error:', error);
+                 updateStatus(`Speech synthesis failed: ${error.message}`, 'error');
+                 stopSpeaking();
+            }
+        }
+
+        function stopSpeaking() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.src = ''; // Release memory
+                currentAudio = null;
+            }
+            if (currentlyPlayingButtonId) {
+                const playButton = document.getElementById(currentlyPlayingButtonId);
+                if (playButton) {
+                    playButton.disabled = false;
+                    playButton.innerHTML = '<i data-lucide="volume-2" class="mr-2 h-5 w-5"></i>Listen to Hindi Translation';
+                    playButton.classList.replace('bg-red-600', 'bg-green-600');
+                    playButton.classList.replace('hover:bg-red-700', 'hover:bg-green-700');
+                    lucide.createIcons();
+                }
+                currentlyPlayingButtonId = null;
+            }
+        }
+        
+        function copyToClipboard(elementId, button) {
+            const textarea = document.getElementById(elementId);
+            // A more robust way to copy that works in various environments
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textarea.value;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const originalIcon = button.innerHTML;
+            button.innerHTML = '<i data-lucide="check" class="h-4 w-4 text-green-600"></i>';
+            lucide.createIcons();
+            setTimeout(() => {
+                button.innerHTML = originalIcon;
+                lucide.createIcons();
+            }, 1500);
+        }
+
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = 'text-center h-6 mt-4 font-semibold ';
+            switch (type) {
+                case 'success': statusDiv.classList.add('text-green-600'); break;
+                case 'error': statusDiv.classList.add('text-red-600'); break;
+                case 'loading': statusDiv.classList.add('text-blue-600'); break;
+                default: statusDiv.classList.add('text-gray-600');
+            }
+        }
+        
+        renderFileList(); // Initial render
+        lucide.createIcons();
+    </script>
+
+</body>
+</html>
+
