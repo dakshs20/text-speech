@@ -228,8 +228,9 @@
                 const audioBytes = await fileToBase64(file);
                 const mimeType = file.type;
 
+                // --- ERROR FIX: Switched to the globally available 'gemini-pro' model ---
                 const apiHost = 'generativelanguage.googleapis.com';
-                const model = 'gemini-1.5-flash-latest'; // Corrected model name
+                const model = 'gemini-pro'; // Using the stable gemini-pro model
                 const apiUrl = `https://${apiHost}/v1beta/models/${model}:generateContent?key=${SERVICE_KEY}`;
 
                 const prompt = `You are a world-class transcription and translation expert specializing in Indian languages. Your task is to process an audio file with the highest degree of accuracy. Listen to the entire audio file very carefully, even if there is background noise.
@@ -258,7 +259,10 @@ Do not add any conversational filler or introductory text to your response.`;
                 
                 const result = await response.json();
 
-                if (result.error) throw new Error(result.error.message);
+                if (result.error) {
+                    console.error('Full API Error Response:', result);
+                    throw new Error(result.error.message);
+                }
                 
                 if (result.candidates && result.candidates[0].content) {
                     const responseText = result.candidates[0].content.parts[0].text;
@@ -274,6 +278,7 @@ Do not add any conversational filler or introductory text to your response.`;
                      if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
                          throw new Error("Response blocked for safety reasons.");
                      } else {
+                         console.error('Invalid Response Structure:', result);
                          throw new Error("Invalid or empty response from the processing service.");
                      }
                 }
