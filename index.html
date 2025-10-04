@@ -229,7 +229,7 @@
                 const mimeType = file.type;
 
                 const apiHost = 'generativelanguage.googleapis.com';
-                const model = 'gemini-1.5-pro-latest';
+                const model = 'gemini-1.5-pro'; // Corrected model name
                 const apiUrl = `https://${apiHost}/v1beta/models/${model}:generateContent?key=${SERVICE_KEY}`;
 
                 const prompt = `You are a world-class transcription and translation expert specializing in Indian languages. Your task is to process an audio file with the highest degree of accuracy. Listen to the entire audio file very carefully, even if there is background noise.
