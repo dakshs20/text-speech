@@ -117,7 +117,6 @@
         let isSpeaking = false;
         let recognition;
         let audioContext;
-        let audioQueue = [];
         
         // --- BROWSER COMPATIBILITY CHECK ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -141,6 +140,7 @@
                 isListening = false;
                 micBtn.innerHTML = ICONS.mic;
                 micBtn.classList.remove('pulse');
+                // Only reset status if we are not in the middle of processing
                 if (statusEl.textContent === 'Listening...') {
                     setStatus('Tap the mic to start');
                 }
@@ -148,7 +148,13 @@
 
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
-                logError(`Error: ${event.error}. Please try again.`);
+                let errorMessage = `Error: ${event.error}. Please try again.`;
+                if (event.error === 'not-allowed') {
+                    errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings.';
+                } else if (event.error === 'no-speech') {
+                    errorMessage = 'No speech was detected. Please try again.';
+                }
+                logError(errorMessage);
                 setStatus('Tap the mic to start');
             };
 
@@ -184,12 +190,6 @@
         window.onload = () => {
             micBtn.innerHTML = ICONS.mic;
             populateVoices();
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (e) {
-                console.error("Web Audio API is not supported in this browser.", e);
-                logError("Audio playback is not supported here.");
-            }
         };
 
         function populateVoices() {
@@ -233,6 +233,19 @@
 
         // --- CORE LOGIC ---
         micBtn.addEventListener('click', () => {
+            // Lazily initialize and resume AudioContext on first user interaction
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    logError("Audio playback is not supported on this browser.");
+                    return;
+                }
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
             if (isListening) {
                 recognition.stop();
             } else if (!isSpeaking) {
@@ -423,15 +436,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
