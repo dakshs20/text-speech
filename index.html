@@ -92,8 +92,8 @@
         const errorLog = document.getElementById('error-log');
         const voiceSelect = document.getElementById('voice-select');
         
-        // The API key is handled by the execution environment for security.
-        const apiKey = ''; 
+        // The API key is now hard-coded directly into the script.
+        const apiKey = 'AIzaSyC96caA_14oe4E6NgXhIsM4gsKfY5HuM9U'; 
 
         const ICONS = {
             mic: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 10.15V16a1 1 0 11-2 0v-1.85A5.002 5.002 0 015 9V4a5 5 0 0110 0v5a5.002 5.002 0 01-3 4.15z" clip-rule="evenodd" /></svg>`,
@@ -262,16 +262,6 @@
         }
         
         async function callGeminiChat(prompt) {
-             if (typeof apiKey === 'undefined' || !apiKey) {
-                // This check is for when the code is run outside of an environment that provides the key.
-                // In a production environment like Vercel, the key would be set as an environment variable.
-                // To make this work locally or in a plain HTML file, you would have to replace apiKey = '' with your actual key.
-                // However, that is not secure for public-facing sites.
-                 const errorMsg = "API Key is not configured in the environment.";
-                 console.error(errorMsg);
-                 throw new Error(errorMsg);
-             }
-
              const systemPrompt = "You are a polite, charming, and helpful AI voice assistant. Keep your answers concise and clear, suitable for being spoken aloud. Always be friendly and courteous.";
              const model = 'gemini-2.5-flash-preview-05-20';
              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -314,12 +304,6 @@
         }
 
         async function generateAndPlayAudio(text) {
-             if (typeof apiKey === 'undefined' || !apiKey) {
-                 const errorMsg = "API Key is not configured in the environment.";
-                 console.error(errorMsg);
-                 throw new Error(errorMsg);
-             }
-
             const selectedVoice = voiceSelect.value;
             const model = 'gemini-2.5-flash-preview-tts';
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -439,6 +423,7 @@
     </script>
 </body>
 </html>
+
 
 
 
