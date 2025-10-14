@@ -55,11 +55,7 @@
         <!-- Header -->
         <div class="flex-shrink-0 flex justify-between items-center pb-4 border-b border-gray-700 flex-wrap gap-4">
             <h1 class="text-2xl font-bold text-gray-100">GenArtML Voice Assistant</h1>
-            <div class="flex items-center space-x-4 flex-wrap gap-4">
-                 <div class="flex items-center space-x-2">
-                    <label for="api-key-input" class="text-sm font-medium text-gray-400 whitespace-nowrap">API Key:</label>
-                    <input type="password" id="api-key-input" placeholder="Enter your Gemini API key" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5" value="AIzaSyC96caA_14oe4E6NgXhIsM4gsKfY5HuM9U">
-                </div>
+            <div class="flex items-center space-x-4">
                 <div class="flex items-center space-x-2">
                     <label for="voice-select" class="text-sm font-medium text-gray-400">Voice:</label>
                     <select id="voice-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
@@ -95,10 +91,9 @@
         const chatContainer = document.getElementById('chat-container');
         const errorLog = document.getElementById('error-log');
         const voiceSelect = document.getElementById('voice-select');
-        const apiKeyInput = document.getElementById('api-key-input');
         
-        // The API key is now read from the input field.
-        // const apiKey = ''; 
+        // The API key is handled by the execution environment for security.
+        const apiKey = ''; 
 
         const ICONS = {
             mic: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 10.15V16a1 1 0 11-2 0v-1.85A5.002 5.002 0 015 9V4a5 5 0 0110 0v5a5.002 5.002 0 01-3 4.15z" clip-rule="evenodd" /></svg>`,
@@ -238,10 +233,6 @@
 
         // --- CORE LOGIC ---
         micBtn.addEventListener('click', () => {
-            if (!apiKeyInput.value.trim()) {
-                logError("Please enter your Gemini API key to start.");
-                return;
-            }
             if (isListening) {
                 recognition.stop();
             } else if (!isSpeaking) {
@@ -271,8 +262,15 @@
         }
         
         async function callGeminiChat(prompt) {
-             const apiKey = apiKeyInput.value.trim();
-             if (!apiKey) throw new Error("API Key is missing.");
+             if (typeof apiKey === 'undefined' || !apiKey) {
+                // This check is for when the code is run outside of an environment that provides the key.
+                // In a production environment like Vercel, the key would be set as an environment variable.
+                // To make this work locally or in a plain HTML file, you would have to replace apiKey = '' with your actual key.
+                // However, that is not secure for public-facing sites.
+                 const errorMsg = "API Key is not configured in the environment.";
+                 console.error(errorMsg);
+                 throw new Error(errorMsg);
+             }
 
              const systemPrompt = "You are a polite, charming, and helpful AI voice assistant. Keep your answers concise and clear, suitable for being spoken aloud. Always be friendly and courteous.";
              const model = 'gemini-2.5-flash-preview-05-20';
@@ -316,8 +314,11 @@
         }
 
         async function generateAndPlayAudio(text) {
-            const apiKey = apiKeyInput.value.trim();
-            if (!apiKey) throw new Error("API Key is missing.");
+             if (typeof apiKey === 'undefined' || !apiKey) {
+                 const errorMsg = "API Key is not configured in the environment.";
+                 console.error(errorMsg);
+                 throw new Error(errorMsg);
+             }
 
             const selectedVoice = voiceSelect.value;
             const model = 'gemini-2.5-flash-preview-tts';
@@ -438,6 +439,7 @@
     </script>
 </body>
 </html>
+
 
 
 
