@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenArtML Voice Assistant</title>
+    <title>GenArtML हिंदी वॉइस असिस्टेंट</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -54,10 +54,10 @@
 
         <!-- Header -->
         <div class="flex-shrink-0 flex justify-between items-center pb-4 border-b border-gray-700 flex-wrap gap-4">
-            <h1 class="text-2xl font-bold text-gray-100">GenArtML Voice Assistant</h1>
+            <h1 class="text-2xl font-bold text-gray-100">GenArtML हिंदी वॉइस असिस्टेंट</h1>
             <div class="flex items-center space-x-4">
                 <div class="flex items-center space-x-2">
-                    <label for="voice-select" class="text-sm font-medium text-gray-400">Voice:</label>
+                    <label for="voice-select" class="text-sm font-medium text-gray-400">आवाज़:</label>
                     <select id="voice-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
                         <!-- Voices will be populated by JS -->
                     </select>
@@ -70,14 +70,14 @@
             <!-- Chat messages will appear here -->
              <div class="flex justify-start mb-4">
                 <div class="chat-bubble-ai rounded-lg py-2 px-4 max-w-md">
-                    <p class="text-sm">Hello! How can I help you today?</p>
+                    <p class="text-sm">नमस्ते! मैं आपकी कैसे मदद कर सकती हूँ?</p>
                 </div>
             </div>
         </div>
 
         <!-- Status & Control -->
         <div class="flex-shrink-0 text-center">
-            <p id="status" class="text-gray-400 h-6 mb-4 transition-opacity duration-300">Tap the mic to start</p>
+            <p id="status" class="text-gray-400 h-6 mb-4 transition-opacity duration-300">शुरू करने के लिए माइक पर टैप करें</p>
             <button id="mic-btn" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-5 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 mx-auto flex items-center justify-center w-20 h-20 shadow-lg">
                 <!-- Icon will be inserted by JS -->
             </button>
@@ -102,15 +102,12 @@
         };
 
         const VOICES = [
-            { name: "Sulafat (Warm, Female)", id: "Sulafat" },
-            { name: "Vindemiatrix (Gentle, Female)", id: "Vindemiatrix" },
-            { name: "Kore (Firm, Female)", id: "Kore" },
-            { name: "Leda (Youthful, Female)", id: "Leda" },
-            { name: "Callirrhoe (Easy-going, Female)", id: "Callirrhoe" },
-            { name: "Puck (Upbeat, Male)", id: "Puck" },
-            { name: "Charon (Informative, Male)", id: "Charon" },
-            { name: "Fenrir (Excitable, Male)", id: "Fenrir" },
-            
+            { name: "सुलफात (महिला)", id: "Sulafat" },
+            { name: "विन्डेमियाट्रिक्स (महिला)", id: "Vindemiatrix" },
+            { name: "कोर (महिला)", id: "Kore" },
+            { name: "लेडा (महिला)", id: "Leda" },
+            { name: "पक (पुरुष)", id: "Puck" },
+            { name: "चारोन (पुरुष)", id: "Charon" },
         ];
         
         let isListening = false;
@@ -127,11 +124,11 @@
             recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = true;
-            recognition.lang = 'en-US';
+            recognition.lang = 'hi-IN';
 
             recognition.onstart = () => {
                 isListening = true;
-                setStatus('Listening...');
+                setStatus('सुन रही हूँ...');
                 micBtn.innerHTML = ICONS.stop;
                 micBtn.classList.add('pulse');
             };
@@ -140,9 +137,8 @@
                 isListening = false;
                 micBtn.innerHTML = ICONS.mic;
                 micBtn.classList.remove('pulse');
-                // Only reset status if we are not in the middle of processing
-                if (statusEl.textContent === 'Listening...') {
-                    setStatus('Tap the mic to start');
+                if (statusEl.textContent === 'सुन रही हूँ...') {
+                    setStatus('शुरू करने के लिए माइक पर टैप करें');
                 }
             };
 
@@ -152,10 +148,10 @@
                 if (event.error === 'not-allowed') {
                     errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings.';
                 } else if (event.error === 'no-speech') {
-                    errorMessage = 'No speech was detected. Please try again.';
+                    errorMessage = 'कोई आवाज़ नहीं मिली। कृपया फिर प्रयास करें।';
                 }
                 logError(errorMessage);
-                setStatus('Tap the mic to start');
+                setStatus('शुरू करने के लिए माइक पर टैप करें');
             };
 
             recognition.onresult = (event) => {
@@ -170,12 +166,10 @@
                     }
                 }
 
-                // Provide real-time feedback to the user
                 if (interim_transcript) {
                    setStatus(`"${interim_transcript}"`);
                 }
 
-                // Process the final transcript
                 if (final_transcript) {
                     const finalTranscriptClean = final_transcript.trim();
                     if (finalTranscriptClean) {
@@ -233,7 +227,6 @@
 
         // --- CORE LOGIC ---
         micBtn.addEventListener('click', () => {
-            // Lazily initialize and resume AudioContext on first user interaction
             if (!audioContext) {
                 try {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -254,7 +247,7 @@
         });
 
         async function handleUserInput(text) {
-            setStatus('Thinking...');
+            setStatus('सोच रही हूँ...');
             micBtn.innerHTML = ICONS.loading;
             micBtn.disabled = true;
 
@@ -268,14 +261,14 @@
                 addChatMessage(errorMessage, 'ai');
                 logError(error.message || "An unknown error occurred.");
             } finally {
-                setStatus('Tap the mic to start');
+                setStatus('शुरू करने के लिए माइक पर टैप करें');
                 micBtn.innerHTML = ICONS.mic;
                 micBtn.disabled = false;
             }
         }
         
         async function callGeminiChat(prompt) {
-             const systemPrompt = "You are a polite, charming, and helpful AI voice assistant. Keep your answers concise and clear, suitable for being spoken aloud. Always be friendly and courteous.";
+             const systemPrompt = "आप एक विनम्र, आकर्षक और सहायक हिंदी एआई वॉयस असिस्टेंट हैं। अपने उत्तर संक्षिप्त और स्पष्ट रखें, जो जोर से बोले जाने के लिए उपयुक्त हों। आपको केवल हिंदी में जवाब देना है। हमेशा मैत्रीपूर्ण और विनम्र रहें।";
              const model = 'gemini-2.5-flash-preview-05-20';
              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -296,11 +289,11 @@
              }
 
              const result = await response.json();
-             return result.candidates?.[0]?.content?.parts?.[0]?.text || "I'm not sure how to respond to that.";
+             return result.candidates?.[0]?.content?.parts?.[0]?.text || "मुझे समझ नहीं आया कि उसका जवाब कैसे दूँ।";
         }
 
         async function speakText(text) {
-            setStatus('Speaking...');
+            setStatus('बोल रही हूँ...');
             isSpeaking = true;
             micBtn.disabled = true;
 
@@ -312,7 +305,7 @@
             } finally {
                 isSpeaking = false;
                 micBtn.disabled = false;
-                setStatus('Tap the mic to start');
+                setStatus('शुरू करने के लिए माइक पर टैप करें');
             }
         }
 
@@ -323,7 +316,7 @@
 
             const payload = {
                 contents: [{
-                    parts: [{ text: `Say in a polite and charming tone: ${text}` }]
+                    parts: [{ text: text }]
                 }],
                 generationConfig: {
                     responseModalities: ["AUDIO"],
