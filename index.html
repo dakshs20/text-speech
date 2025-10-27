@@ -1,432 +1,1357 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenArtML हिंदी वॉइस असिस्टेंट</title>
+    <title>Callex AI Dashboard</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
         }
-        .pulse {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-            animation: pulse-blue 2s infinite;
+        .sidebar {
+            width: 280px;
+            background-color: #1a202c; /* Dark primary */
+            color: #e2e8f0;
         }
-        @keyframes pulse-blue {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-            }
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-            }
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-            }
+        .nav-link {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
         }
-        .chat-bubble-user {
-            background-color: #3B82F6; /* blue-500 */
-            color: white;
+        .nav-link:hover {
+            background-color: #2d3748;
         }
-        .chat-bubble-ai {
-            background-color: #4B5563; /* gray-600 */
-            color: white;
+        .nav-link.active {
+            background-color: #4a5568;
+            color: #ffffff;
+            font-weight: 600;
         }
-        #chat-container::-webkit-scrollbar {
-            width: 8px;
+        .page-content {
+            min-height: calc(100vh - 4rem); /* Adjust based on header height */
+            padding: 1.5rem;
         }
-        #chat-container::-webkit-scrollbar-track {
-            background: #1F2937; /* gray-800 */
+        /* Custom brand color (Indigo 600) */
+        .text-brand-primary { color: #4f46e5; }
+        .bg-brand-primary { background-color: #4f46e5; }
+        .bg-brand-light { background-color: #eef2ff; }
+
+        /* Modal styling */
+        .modal {
+            transition: opacity 0.25s ease;
         }
-        #chat-container::-webkit-scrollbar-thumb {
-            background: #4B5563; /* gray-600 */
+
+        .slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+        }
+        .slider-track {
+            height: 8px;
+            background: #e5e7eb;
             border-radius: 4px;
         }
+        input[type=range]::-webkit-slider-thumb { @apply slider-thumb; }
+        input[type=range]::-moz-range-thumb { @apply slider-thumb; }
+        input[type=range]::-ms-thumb { @apply slider-thumb; }
+        input[type=range]::-webkit-slider-runnable-track { @apply slider-track; }
+        input[type=range]::-moz-range-track { @apply slider-track; }
+        input[type=range]::-ms-track { @apply slider-track; }
+
     </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex min-h-screen">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar h-full fixed top-0 left-0 pt-8 shadow-2xl">
+        <div class="px-6 mb-10">
+            <h1 class="text-3xl font-bold text-white">Callex AI</h1>
+            <p class="text-sm text-indigo-300">Intelligent Voice Analytics</p>
+        </div>
+        <nav class="px-4">
+            <ul>
+                <li class="mb-2">
+                    <a href="#" class="nav-link active" data-page="dashboard-page">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="nav-link" data-page="recordings-page">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                        Recordings
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="nav-link" data-page="bin-page">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        Bin
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="nav-link" data-page="agents-page">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        AI Agents
+                    </a>
+                </li>
+                <!-- NEW VOICE SETTINGS LINK -->
+                <li class="mb-2">
+                    <a href="#" class="nav-link" data-page="voice-settings-page">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                        Voice Settings Panel
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
 
-    <div class="w-full max-w-2xl h-[85vh] bg-gray-800 rounded-2xl shadow-2xl flex flex-col p-6">
-
-        <!-- Header -->
-        <div class="flex-shrink-0 flex justify-between items-center pb-4 border-b border-gray-700 flex-wrap gap-4">
-            <h1 class="text-2xl font-bold text-gray-100">GenArtML हिंदी वॉइस असिस्टेंट</h1>
+    <!-- Main Content -->
+    <div class="flex-1 ml-70 md:ml-72">
+        <header class="h-16 flex items-center justify-between px-6 bg-white shadow-md">
+            <div class="text-xl font-medium text-gray-800">Analytics Overview</div>
             <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <label for="voice-select" class="text-sm font-medium text-gray-400">आवाज़:</label>
-                    <select id="voice-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
-                        <!-- Voices will be populated by JS -->
-                    </select>
-                </div>
+                <span class="text-sm font-medium text-gray-600">Admin User</span>
+                <div class="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-800 font-bold">A</div>
             </div>
-        </div>
+        </header>
 
-        <!-- Chat Container -->
-        <div id="chat-container" class="flex-grow my-4 overflow-y-auto pr-2">
-            <!-- Chat messages will appear here -->
-             <div class="flex justify-start mb-4">
-                <div class="chat-bubble-ai rounded-lg py-2 px-4 max-w-md">
-                    <p class="text-sm">नमस्ते! मैं आपकी कैसे मदद कर सकती हूँ?</p>
+        <main class="p-6">
+            
+            <!-- Dynamic Content Area -->
+            <div id="content-area">
+                
+                <!-- ======================================== -->
+                <!--             Dashboard Page               -->
+                <!-- ======================================== -->
+                <div id="dashboard-page" class="page-content">
+                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Overview</h2>
+                    
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-green-500">
+                            <h3 class="text-sm font-medium text-gray-500 mb-2">Total Calls Handled (24h)</h3>
+                            <p class="text-3xl font-bold text-gray-900">1,452</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-brand-primary">
+                            <h3 class="text-sm font-medium text-gray-500 mb-2">Success Rate</h3>
+                            <p class="text-3xl font-bold text-brand-primary">89.4%</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-yellow-500">
+                            <h3 class="text-sm font-medium text-gray-500 mb-2">Avg. Handle Time</h3>
+                            <p class="text-3xl font-bold text-gray-900">03:12</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-red-500">
+                            <h3 class="text-sm font-medium text-gray-500 mb-2">Negative Sentiment</h3>
+                            <p class="text-3xl font-bold text-gray-900">12.5%</p>
+                        </div>
+                    </div>
+
+                    <!-- Live Call Chart -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Live Call Volume (Past Hour)</h3>
+                        <div class="h-80">
+                            <canvas id="liveCallChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Tags / Recent Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Top 5 Intents Detected</h3>
+                            <ul class="space-y-3">
+                                <li class="flex justify-between items-center py-2 border-b">
+                                    <span class="text-gray-700">New Dish Sale</span>
+                                    <span class="text-lg font-bold text-brand-primary">45%</span>
+                                </li>
+                                <li class="flex justify-between items-center py-2 border-b">
+                                    <span class="text-gray-700">Recharge Inquiry</span>
+                                    <span class="text-lg font-bold text-brand-primary">22%</span>
+                                </li>
+                                <li class="flex justify-between items-center py-2 border-b">
+                                    <span class="text-gray-700">Service Issue Complaint</span>
+                                    <span class="text-lg font-bold text-brand-primary">15%</span>
+                                </li>
+                                <li class="flex justify-between items-center py-2 border-b">
+                                    <span class="text-gray-700">Not Willing to Recharge</span>
+                                    <span class="text-lg font-bold text-brand-primary">10%</span>
+                                </li>
+                                <li class="flex justify-between items-center py-2">
+                                    <span class="text-gray-700">Callback Request</span>
+                                    <span class="text-lg font-bold text-brand-primary">8%</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Agent Activity</h3>
+                            <ul class="space-y-3">
+                                <li class="text-sm text-gray-700">
+                                    <span class="font-medium text-gray-900">Jane D.</span> tagged call <span class="text-brand-primary">#456</span> as 'Language_Barrier'.
+                                </li>
+                                <li class="text-sm text-gray-700">
+                                    <span class="font-medium text-gray-900">AI Agent</span> completed a 'New Dish Sale' on call <span class="text-brand-primary">#123</span>.
+                                </li>
+                                <li class="text-sm text-gray-700">
+                                    <span class="font-medium text-gray-900">John S.</span> opened ticket for call <span class="text-brand-primary">#901</span> ('Service_Issue').
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Status & Control -->
-        <div class="flex-shrink-0 text-center">
-            <p id="status" class="text-gray-400 h-6 mb-4 transition-opacity duration-300">शुरू करने के लिए माइक पर टैप करें</p>
-            <button id="mic-btn" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-5 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 mx-auto flex items-center justify-center w-20 h-20 shadow-lg">
-                <!-- Icon will be inserted by JS -->
-            </button>
-             <p id="error-log" class="text-red-400 text-sm mt-4 h-5"></p>
+                <!-- ======================================== -->
+                <!--           Recordings Page                -->
+                <!-- ======================================== -->
+                <div id="recordings-page" class="page-content hidden">
+                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Call Recordings</h2>
+                    
+                    <!-- Action Bar -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" placeholder="Search customer, agent, or tag..." class="p-2 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary w-80">
+                            <button class="px-4 py-2 bg-brand-primary text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition">Search</button>
+                        </div>
+                        <button id="bin-selected-btn" class="px-4 py-2 text-red-600 border border-red-200 bg-red-50 font-medium rounded-lg shadow-md hover:bg-red-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Move to Bin
+                        </button>
+                    </div>
+
+                    <!-- Recordings Table -->
+                    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-4 w-4">
+                                        <input type="checkbox" id="select-all-recordings" class="rounded text-brand-primary focus:ring-brand-primary">
+                                    </th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Agent</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date & Time</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sentiment</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tags</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordings-tbody" class="bg-white divide-y divide-gray-200">
+                                <!-- Table rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ======================================== -->
+                <!--               Bin Page                   -->
+                <!-- ======================================== -->
+                <div id="bin-page" class="page-content hidden">
+                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Recycle Bin</h2>
+                    <p class="text-gray-600 mb-4">Recordings moved here are retained for 30 days before permanent deletion.</p>
+
+                    <!-- Action Bar -->
+                    <div class="flex justify-end items-center space-x-3 mb-4">
+                        <button id="restore-selected-btn" class="px-4 py-2 bg-green-500 text-white font-medium rounded-lg shadow-md hover:bg-green-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3 10a9 9 0 0 1 18 0v2a9 9 0 0 1-18 0v-2"></path></svg>
+                            Restore Selected
+                        </button>
+                        <button id="perm-delete-selected-btn" class="px-4 py-2 text-red-600 border border-red-200 bg-red-50 font-medium rounded-lg shadow-md hover:bg-red-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Permanent Delete Selected
+                        </button>
+                        <button id="clear-bin-btn" class="px-4 py-2 text-red-600 border border-red-200 bg-red-50 font-medium rounded-lg shadow-md hover:bg-red-100 transition">
+                            Clear Bin
+                        </button>
+                    </div>
+
+                    <!-- Bin Table -->
+                    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-4 w-4">
+                                        <input type="checkbox" id="select-all-bin" class="rounded text-brand-primary focus:ring-brand-primary">
+                                    </th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Deleted On</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
+                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bin-tbody" class="bg-white divide-y divide-gray-200">
+                                <!-- Table rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ======================================== -->
+                <!--             AI Agents Page               -->
+                <!-- ======================================== -->
+                <div id="agents-page" class="page-content hidden">
+                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">AI Agent Management</h2>
+                    
+                    <!-- Agent Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Agents</h3>
+                            <p class="text-3xl font-bold text-gray-900">47</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Actively Calling</h3>
+                            <p id="agent-stat-calling" class="text-3xl font-bold text-green-600">--</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">In Learning</h3>
+                            <p id="agent-stat-learning" class="text-3xl font-bold text-blue-600">--</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">In Maintenance</h3>
+                            <p id="agent-stat-maintenance" class="text-3xl font-bold text-gray-500">--</p>
+                        </div>
+                    </div>
+
+                    <!-- Agent Grid -->
+                    <div id="agent-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- JS will populate this grid -->
+                    </div>
+                </div>
+
+                <!-- ======================================== -->
+                <!--         Voice Settings Page              -->
+                <!-- ======================================== -->
+                <div id="voice-settings-page" class="page-content hidden">
+                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Voice Settings Panel</h2>
+
+                    <!-- Authentication Panel -->
+                    <div id="voice-auth-panel" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-auto my-20">
+                        <div class="text-center mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <h3 class="text-xl font-bold text-gray-800 mt-3">Access Restricted</h3>
+                            <p class="text-gray-600 text-sm">This panel contains critical voice modulation settings. Please authenticate to proceed.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <input type="password" id="voice-password-input" placeholder="Enter password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
+                            <button id="voice-authenticate-btn" class="w-full p-3 bg-brand-primary text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+                                Unlock Settings
+                            </button>
+                            <p id="voice-auth-message" class="text-center text-sm text-red-600 hidden">Incorrect password. Try again.</p>
+                        </div>
+                    </div>
+
+                    <!-- Settings Panel (Hidden by default) -->
+                    <div id="voice-settings-panel" class="hidden">
+                        <p class="text-gray-600 mb-8">Configure the fundamental voice characteristics for your AI Agents. These settings impact all outgoing calls.</p>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+
+                            <!-- Core Modulation Settings -->
+                            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-brand-primary">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Core Voice Modulation</h3>
+                                <div class="space-y-6">
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Pitch (Semitones)</span>
+                                            <span id="pitch-value" class="text-brand-primary font-bold">0.0</span>
+                                        </label>
+                                        <input type="range" id="pitch-slider" min="-12.0" max="12.0" step="0.1" value="0.0" class="w-full">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Low/Deep</span><span>Natural</span><span>High/Squeaky</span></div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Speaking Rate (Factor)</span>
+                                            <span id="rate-value" class="text-brand-primary font-bold">1.00</span>
+                                        </label>
+                                        <input type="range" id="rate-slider" min="0.5" max="2.0" step="0.01" value="1.0" class="w-full">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Slow</span><span>Normal</span><span>Fast</span></div>
+                                    </div>
+
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Volume Gain (dB)</span>
+                                            <span id="volume-value" class="text-brand-primary font-bold">0.0</span>
+                                        </label>
+                                        <input type="range" id="volume-slider" min="-10.0" max="10.0" step="0.5" value="0.0" class="w-full">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Soft</span><span>Default</span><span>Loud</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Emotional Tone Selection -->
+                            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-purple-500">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Emotional Tone & Style</h3>
+                                <div class="space-y-4">
+                                    <label class="block text-sm font-medium text-gray-700">Primary Tone Focus</label>
+                                    <select id="tone-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                        <option value="professional">Professional / Neutral</option>
+                                        <option value="friendly">Warm / Friendly</option>
+                                        <option value="empathetic">Empathetic / Calming</option>
+                                        <option value="assertive">Assertive / Formal</option>
+                                        <option value="enthusiastic">Enthusiastic / Upbeat</option>
+                                    </select>
+                                    
+                                    <div class="control-group pt-2">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Tone Intensity (0-100)</span>
+                                            <span id="intensity-value" class="text-purple-600 font-bold">50</span>
+                                        </label>
+                                        <input type="range" id="intensity-slider" min="0" max="100" step="1" value="50" class="w-full accent-purple-500">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Subtle</span><span>Medium</span><span>Strong</span></div>
+                                    </div>
+
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700">Accent Preference (Hindi)</label>
+                                        <select id="accent-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                            <option value="standard_hindi">Standard Hindi</option>
+                                            <option value="maharashtrian">Maharashtrian Hindi</option>
+                                            <option value="gujarati">Gujarati Hindi</option>
+                                            <option value="bengali">Bengali Hindi</option>
+                                            <option value="delhi">Delhi/Haryanvi Hindi</option>
+                                            <option value="bihari">Bihari Hindi</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fine-Grained Filters -->
+                            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-teal-500">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Acoustic Filters & Effects</h3>
+                                <div class="space-y-6">
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Reverberation Level (ms)</span>
+                                            <span id="reverb-value" class="text-teal-600 font-bold">50</span>
+                                        </label>
+                                        <input type="range" id="reverb-slider" min="0" max="500" step="10" value="50" class="w-full accent-teal-500">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Dry</span><span>Studio</span><span>Echo Chamber</span></div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Vocal Warmth / Depth (Hz)</span>
+                                            <span id="warmth-value" class="text-teal-600 font-bold">120</span>
+                                        </label>
+                                        <input type="range" id="warmth-slider" min="80" max="300" step="5" value="120" class="w-full accent-teal-500">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Thin</span><span>Default</span><span>Rich</span></div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Compression Ratio (1:x)</span>
+                                            <span id="compression-value" class="text-teal-600 font-bold">4.0</span>
+                                        </label>
+                                        <input type="range" id="compression-slider" min="1.0" max="10.0" step="0.5" value="4.0" class="w-full accent-teal-500">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Subtle</span><span>Standard</span><span>Aggressive</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-10 pt-6 border-t border-gray-200 flex justify-between items-center">
+                            <button class="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                                Test Current Voice
+                            </button>
+                            <button class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-xl hover:bg-green-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                Apply All Global Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <script>
-        const micBtn = document.getElementById('mic-btn');
-        const statusEl = document.getElementById('status');
-        const chatContainer = document.getElementById('chat-container');
-        const errorLog = document.getElementById('error-log');
-        const voiceSelect = document.getElementById('voice-select');
-        
-        // The API key is now hard-coded directly into the script.
-        const apiKey = 'AIzaSyDYUs2HkCTLh4V5l_GhlvtcgyztPHio9wo'; 
-
-        const ICONS = {
-            mic: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 10.15V16a1 1 0 11-2 0v-1.85A5.002 5.002 0 015 9V4a5 5 0 0110 0v5a5.002 5.002 0 01-3 4.15z" clip-rule="evenodd" /></svg>`,
-            stop: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><rect width="10" height="10" x="5" y="5" rx="1" /></svg>`,
-            loading: `<svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`,
-        };
-
-        const VOICES = [
-            { name: "सुलफात (महिला)", id: "Sulafat" },
-            { name: "विन्डेमियाट्रिक्स (महिला)", id: "Vindemiatrix" },
-            { name: "कोर (महिला)", id: "Kore" },
-            { name: "लेडा (महिला)", id: "Leda" },
-            { name: "पक (पुरुष)", id: "Puck" },
-            { name: "चारोन (पुरुष)", id: "Charon" },
-        ];
-        
-        let isListening = false;
-        let isSpeaking = false;
-        let recognition;
-        let audioContext;
-        
-        // --- BROWSER COMPATIBILITY CHECK ---
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            setStatus("Speech recognition not supported in this browser.", true);
-            micBtn.disabled = true;
-        } else {
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.lang = 'hi-IN';
-
-            recognition.onstart = () => {
-                isListening = true;
-                setStatus('सुन रही हूँ...');
-                micBtn.innerHTML = ICONS.stop;
-                micBtn.classList.add('pulse');
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                micBtn.innerHTML = ICONS.mic;
-                micBtn.classList.remove('pulse');
-                if (statusEl.textContent === 'सुन रही हूँ...') {
-                    setStatus('शुरू करने के लिए माइक पर टैप करें');
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                let errorMessage = `Error: ${event.error}. Please try again.`;
-                if (event.error === 'not-allowed') {
-                    errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings.';
-                } else if (event.error === 'no-speech') {
-                    errorMessage = 'कोई आवाज़ नहीं मिली। कृपया फिर प्रयास करें।';
-                }
-                logError(errorMessage);
-                setStatus('शुरू करने के लिए माइक पर टैप करें');
-            };
-
-            recognition.onresult = (event) => {
-                let interim_transcript = '';
-                let final_transcript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        final_transcript += event.results[i][0].transcript;
-                    } else {
-                        interim_transcript += event.results[i][0].transcript;
-                    }
-                }
-
-                if (interim_transcript) {
-                   setStatus(`"${interim_transcript}"`);
-                }
-
-                if (final_transcript) {
-                    const finalTranscriptClean = final_transcript.trim();
-                    if (finalTranscriptClean) {
-                        addChatMessage(finalTranscriptClean, 'user');
-                        handleUserInput(finalTranscriptClean);
-                    }
-                }
-            };
-        }
-
-        // --- INITIALIZATION ---
-        window.onload = () => {
-            micBtn.innerHTML = ICONS.mic;
-            populateVoices();
-        };
-
-        function populateVoices() {
-            VOICES.forEach(voice => {
-                const option = document.createElement('option');
-                option.value = voice.id;
-                option.textContent = voice.name;
-                voiceSelect.appendChild(option);
-            });
-            voiceSelect.value = "Sulafat"; // Default polite voice
-        }
-
-        // --- UI & STATE MANAGEMENT ---
-        function setStatus(text, isError = false) {
-            statusEl.textContent = text;
-            statusEl.classList.toggle('text-red-400', isError);
-            statusEl.classList.toggle('text-gray-400', !isError);
-        }
-
-        function logError(message) {
-            errorLog.textContent = message;
-            setTimeout(() => { errorLog.textContent = ''; }, 5000);
-        }
-        
-        function addChatMessage(text, sender) {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex mb-4 ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
-
-            const bubble = document.createElement('div');
-            bubble.className = `rounded-lg py-2 px-4 max-w-md ${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
+    <!-- Modals (All existing modals remain here) -->
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all p-6">
+            <div class="flex justify-between items-start border-b pb-3 mb-4">
+                <h3 class="text-2xl font-semibold text-gray-800">Call Details <span id="detail-id" class="text-sm font-normal text-gray-500 ml-2"></span></h3>
+                <button id="close-details-modal-btn" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
             
-            const p = document.createElement('p');
-            p.className = 'text-sm';
-            p.textContent = text;
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Customer</label>
+                    <p id="detail-customer" class="text-lg text-gray-900"></p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Agent</label>
+                    <p id="detail-agent" class="text-lg text-gray-900"></p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Date & Time</label>
+                    <p id="detail-timestamp" class="text-lg text-gray-900"></p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Duration</label>
+                    <p id="detail-duration" class="text-lg text-gray-900"></p>
+                </div>
+            </div>
 
-            bubble.appendChild(p);
-            messageWrapper.appendChild(bubble);
-            chatContainer.appendChild(messageWrapper);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+            <!-- AI Analysis -->
+            <div id="ai-analysis-section" class="bg-brand-light p-4 rounded-lg border border-indigo-200 mb-6">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">AI Analysis</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Sentiment</label>
+                        <p id="detail-sentiment" class="text-lg font-medium"></p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Detected Intent</label>
+                        <p id="detail-intent" class="text-lg text-gray-900"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="text-sm font-medium text-gray-500">AI Summary</label>
+                    <p id="detail-summary" class="text-sm text-gray-700 mt-1"></p>
+                </div>
+            </div>
 
-        // --- CORE LOGIC ---
-        micBtn.addEventListener('click', () => {
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch (e) {
-                    logError("Audio playback is not supported on this browser.");
+            <!-- Audio Player (Placeholder) -->
+            <div>
+                <label class="text-sm font-medium text-gray-500 block mb-2">Audio Playback</label>
+                <audio controls class="w-full bg-gray-100 rounded-lg p-2">
+                    <source src="placeholder.mp3" type="audio/mp3">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+
+            <div class="mt-6">
+                <label class="text-sm font-medium text-gray-500 block mb-2">Tags</label>
+                <div id="detail-tags" class="flex flex-wrap gap-2">
+                    <!-- Tags will be injected here -->
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 mt-4 border-t">
+                <button id="edit-tags-btn" class="px-4 py-2 bg-brand-primary text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition">
+                    Edit Tags
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Editor Modal -->
+    <div id="tag-editor-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all p-6">
+            <div class="flex justify-between items-start border-b pb-3 mb-4">
+                <h3 class="text-2xl font-semibold text-gray-800">Edit Tags</h3>
+                <button id="close-tag-editor-modal-btn" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700 block mb-2">Current Tags (Click to remove)</label>
+                <div id="tag-list-container" class="flex flex-wrap gap-2 min-h-[40px] border border-gray-300 p-2 rounded-lg bg-gray-50">
+                    <!-- Editable tags injected here -->
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="tag-input" class="text-sm font-medium text-gray-700 block mb-2">Add New Tag</label>
+                <div class="relative">
+                    <input type="text" id="tag-input" list="available-tags" placeholder="Type or select a tag and press Enter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
+                    <datalist id="available-tags">
+                        <!-- Options will be populated by JS -->
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t">
+                <button id="save-tags-btn" class="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bin Confirmation Modal -->
+    <div id="bin-confirm-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all p-6 text-center">
+            <div class="text-yellow-500 mb-4">
+                <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Move to Bin?</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to move the selected recording(s) to the recycle bin?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="close-bin-confirm-modal-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button id="confirm-bin-btn" class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg shadow-md hover:bg-red-700 transition">
+                    Move
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permanent Delete Modal -->
+    <div id="perm-delete-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all p-6 text-center">
+            <div class="text-red-500 mb-4">
+                <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Permanent Deletion</h3>
+            <p class="text-gray-600 mb-6">This action is irreversible. Permanently delete the selected recording(s)?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="close-perm-delete-modal-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button id="confirm-perm-delete-btn" class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg shadow-md hover:bg-red-700 transition">
+                    Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Password for Voice Settings Panel
+        const VOICE_SETTINGS_PASSWORD = 'callex2025';
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            
+            // Global state for tag editing
+            let currentEditId = null;
+            let currentTagTarget = null; // Either 'callData' or 'binData'
+
+            // --- DATA ---
+            const availableTags = [
+                'New_D2H', 'AgreeToSubmit', 'AUTOWRAP', 'Not_Interested', 'DNC', 'Call_Back',
+                'Same_Day_PTR', 'Wrong_Number', 'Service_Issue', 'NO_USER_AVAILABLE',
+                'Voice_Mail', 'PTRDICY', 'Recharge_Done', 'Language_Barrier', 'Technical_Support'
+            ];
+
+            // Main data store
+            let callData = [
+                { id: 1, customer: '+1 (555) 123-4567', agent: 'AI Agent', timestamp: new Date(Date.now() - 3600000), duration: '03:45', tags: ['New_D2H', 'AgreeToSubmit', 'AUTOWRAP'], sentiment: 'Positive', intent: 'New Dish Sale', summary: 'Customer agreed to submit details for a new D2H connection. Call was wrapped up successfully.' },
+                { id: 2, customer: '+1 (555) 987-6543', agent: 'Jane D.', timestamp: new Date(Date.now() - 7200000), duration: '02:15', tags: ['Not_Interested', 'DNC'], sentiment: 'Negative', intent: 'Not Willing to Recharge', summary: 'Customer is not willing to recharge, stated they are not interested and asked to be put on the DNC list. The tone was impatient.' },
+                { id: 3, customer: '+1 (555) 222-3333', agent: 'AI Agent', timestamp: new Date(Date.now() - 10800000), duration: '05:30', tags: ['Call_Back', 'Same_Day_PTR'], sentiment: 'Neutral', intent: 'Callback Request', summary: 'Customer was busy but requested a call back later today. Set for same-day PTR.' },
+                { id: 4, customer: '+1 (555) 444-5555', agent: 'AI Agent', timestamp: new Date(Date.now() - 86400000), duration: '01:05', tags: ['Wrong_Number'], sentiment: 'Neutral', intent: 'Wrong Number', summary: 'The person who answered stated it was a wrong number.' },
+                { id: 5, customer: '+1 (555) 666-7777', agent: 'John S.', timestamp: new Date(Date.now() - 172800000), duration: '07:20', tags: ['Service_Issue', 'AUTOWRAP'], sentiment: 'Negative', intent: 'Service Issue Complaint', summary: 'Customer called to complain about a service issue. Was upset about TV picture quality. Agent handled the complaint and created a service ticket.' },
+                { id: 6, customer: '+1 (555) 888-9999', agent: 'AI Agent', timestamp: new Date(Date.now() - 259200000), duration: '00:45', tags: ['NO_USER_AVAILABLE', 'Voice_Mail'], sentiment: 'Neutral', intent: 'Voicemail', summary: 'Call went to voicemail. No user was available to talk.' },
+            ];
+
+            let binData = [
+                { id: 7, customer: '+1 (555) 111-0000', agent: 'AI Agent', timestamp: new Date(Date.now() - 518400000), duration: '04:10', tags: ['PTRDICY', 'Recharge_Done'], deletedOn: new Date(Date.now() - 86400000 * 2), sentiment: 'Positive', intent: 'Recharge Completed', summary: 'Customer confirmed recharge was done after initial reminder.' },
+                { id: 8, customer: '+1 (555) 222-1111', agent: 'Jane D.', timestamp: new Date(Date.now() - 604800000), duration: '01:50', tags: ['Language_Barrier'], deletedOn: new Date(Date.now() - 86400000 * 10), sentiment: 'Neutral', intent: 'Language Barrier', summary: 'Could not proceed with the call due to a language barrier.' }
+            ];
+
+            // Agent Mock Data
+            let agentData = [];
+            const agentNames = [
+                'Orion', 'Vega', 'Sirius', 'Altair', 'Deneb', 'Capella', 'Rigel', 'Procyon', 'Achernar', 'Betelgeuse',
+                'Spark', 'Vertex', 'Nova', 'Pulse', 'Apex', 'Core', 'Zenith', 'Echo', 'Helios', 'Cortex', 'Nexus',
+                'Unit', 'Alpha', 'Bravo', 'Charlie', 'Delta', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet', 'Kilo',
+                'Lima', 'Mike', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Victor', 'Whiskey', 'X-Ray',
+                'Yankee', 'Zulu', 'Astra', 'Byte'
+            ];
+            const statuses = ['Active', 'Calling', 'Learning', 'Maintenance'];
+            // UPDATED: Removed Sales, Billing, Retention and added General, Technical
+            const specialties = ['Support', 'General', 'Technical']; 
+
+            for (let i = 1; i <= 47; i++) {
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                agentData.push({
+                    id: `bot-${i}`,
+                    name: `${agentNames[i-1]}-${String(i).padStart(2, '0')}`,
+                    status: status,
+                    currentCalls: status === 'Calling' ? Math.floor(Math.random() * 5) + 1 : 0,
+                    avgHandleTime: `0${Math.floor(Math.random() * 4) + 2}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+                    successRate: Math.floor(Math.random() * 20) + 75, // 75-95%
+                    specialty: specialties[Math.floor(Math.random() * specialties.length)]
+                });
+            }
+
+            // --- DOM Elements ---
+            const sidebarLinks = document.querySelectorAll('.nav-link');
+            const dashboardPage = document.getElementById('dashboard-page');
+            const recordingsPage = document.getElementById('recordings-page');
+            const binPage = document.getElementById('bin-page');
+            const agentsPage = document.getElementById('agents-page');
+            const voiceSettingsPage = document.getElementById('voice-settings-page'); // NEW
+            const recordingsTbody = document.getElementById('recordings-tbody');
+            const binTbody = document.getElementById('bin-tbody');
+            const liveCallChartCtx = document.getElementById('liveCallChart').getContext('2d');
+            
+            // Recordings Action Buttons
+            const binSelectedBtn = document.getElementById('bin-selected-btn'); 
+
+            // Bin Action Buttons
+            const restoreSelectedBtn = document.getElementById('restore-selected-btn');
+            const clearBinBtn = document.getElementById('clear-bin-btn');
+            const permDeleteSelectedBtn = document.getElementById('perm-delete-selected-btn');
+            
+            // Agent Page
+            const agentGrid = document.getElementById('agent-grid');
+            const agentStatCalling = document.getElementById('agent-stat-calling');
+            const agentStatLearning = document.getElementById('agent-stat-learning');
+            const agentStatMaintenance = document.getElementById('agent-stat-maintenance');
+
+            // Voice Settings Panel Elements (NEW)
+            const voiceAuthPanel = document.getElementById('voice-auth-panel');
+            const voicePasswordInput = document.getElementById('voice-password-input');
+            const voiceAuthenticateBtn = document.getElementById('voice-authenticate-btn');
+            const voiceAuthMessage = document.getElementById('voice-auth-message');
+            const voiceSettingsPanel = document.getElementById('voice-settings-panel');
+            
+            // Voice Settings Sliders (NEW)
+            const pitchSlider = document.getElementById('pitch-slider');
+            const pitchValue = document.getElementById('pitch-value');
+            const rateSlider = document.getElementById('rate-slider');
+            const rateValue = document.getElementById('rate-value');
+            const volumeSlider = document.getElementById('volume-slider');
+            const volumeValue = document.getElementById('volume-value');
+            const intensitySlider = document.getElementById('intensity-slider');
+            const intensityValue = document.getElementById('intensity-value');
+            const reverbSlider = document.getElementById('reverb-slider');
+            const reverbValue = document.getElementById('reverb-value');
+            const warmthSlider = document.getElementById('warmth-slider');
+            const warmthValue = document.getElementById('warmth-value');
+            const compressionSlider = document.getElementById('compression-slider');
+            const compressionValue = document.getElementById('compression-value');
+            
+            // Details Modal
+            const detailsModal = document.getElementById('details-modal');
+            const closeDetailsModalBtn = document.getElementById('close-details-modal-btn'); 
+            const editTagsBtn = document.getElementById('edit-tags-btn');
+            const detailId = document.getElementById('detail-id');
+            const detailCustomer = document.getElementById('detail-customer');
+            const detailAgent = document.getElementById('detail-agent');
+            const detailTimestamp = document.getElementById('detail-timestamp');
+            const detailDuration = document.getElementById('detail-duration');
+            const detailTags = document.getElementById('detail-tags');
+            const detailSentiment = document.getElementById('detail-sentiment');
+            const detailIntent = document.getElementById('detail-intent');
+            const detailSummary = document.getElementById('detail-summary');
+
+            // Tag Editor Modal
+            const tagEditorModal = document.getElementById('tag-editor-modal');
+            const closeTagEditorModalBtn = document.getElementById('close-tag-editor-modal-btn'); 
+            const tagInput = document.getElementById('tag-input');
+            const tagListContainer = document.getElementById('tag-list-container');
+            const saveTagsBtn = document.getElementById('save-tags-btn');
+
+            // Bin Confirmation Modal
+            const binConfirmModal = document.getElementById('bin-confirm-modal');
+            const closeBinConfirmModalBtn = document.getElementById('close-bin-confirm-modal-btn'); 
+            const confirmBinBtn = document.getElementById('confirm-bin-btn');
+
+            // Permanent Delete Modal
+            const permDeleteModal = document.getElementById('perm-delete-modal');
+            const closePermDeleteModalBtn = document.getElementById('close-perm-delete-modal-btn'); 
+            const confirmPermDeleteBtn = document.getElementById('confirm-perm-delete-btn');
+
+
+            // --- UTILITY FUNCTIONS ---
+
+            const showPage = (pageId) => {
+                document.querySelectorAll('.page-content').forEach(page => {
+                    page.classList.add('hidden');
+                });
+                const page = document.getElementById(pageId);
+                if (page) {
+                    page.classList.remove('hidden');
+                }
+            };
+
+            const openModal = (modalElement) => {
+                modalElement.classList.remove('hidden');
+            };
+
+            const closeModal = (modalElement) => {
+                modalElement.classList.add('hidden');
+            };
+
+            const formatTimestamp = (date) => {
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' - ' +
+                       date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            };
+
+            const timeSince = (date) => {
+                const seconds = Math.floor((new Date() - date) / 1000);
+                let interval = Math.floor(seconds / 31536000);
+                if (interval > 1) return interval + " years ago";
+                interval = Math.floor(seconds / 2592000);
+                if (interval > 1) return interval + " months ago";
+                interval = Math.floor(seconds / 86400);
+                if (interval > 1) return interval + " days ago";
+                interval = Math.floor(seconds / 3600);
+                if (interval > 1) return interval + " hours ago";
+                interval = Math.floor(seconds / 60);
+                if (interval > 1) return interval + " minutes ago";
+                const remaining = Math.floor(seconds) + " seconds ago";
+                return remaining;
+            };
+
+            const formatSentiment = (sentiment) => {
+                switch (sentiment) {
+                    case 'Positive':
+                        return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Positive</span>`;
+                    case 'Negative':
+                        return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Negative</span>`;
+                    case 'Neutral':
+                    default:
+                        return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Neutral</span>`;
+                }
+            };
+
+            const formatTag = (tag) => {
+                return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-indigo-50 text-brand-primary">${tag}</span>`;
+            };
+
+            const formatAgentStatus = (status) => {
+                switch (status) {
+                    case 'Active':
+                        return `<span class="flex items-center text-sm text-gray-600"><svg class="w-2.5 h-2.5 mr-2 text-gray-400 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Active</span>`;
+                    case 'Calling':
+                        return `<span class="flex items-center text-sm text-green-600 font-medium"><svg class="w-2.5 h-2.5 mr-2 text-green-500 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Calling</span>`;
+                    case 'Learning':
+                        return `<span class="flex items-center text-sm text-blue-600"><svg class="w-2.5 h-2.5 mr-2 text-blue-500 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Learning</span>`;
+                    case 'Maintenance':
+                        return `<span class="flex items-center text-sm text-yellow-600"><svg class="w-2.5 h-2.5 mr-2 text-yellow-500 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Maintenance</span>`;
+                    default:
+                        return `<span class="flex items-center text-sm text-gray-600"><svg class="w-2.5 h-2.5 mr-2 text-gray-400 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>${status}</span>`;
+                }
+            };
+            
+            // Navigation Handler 
+            const handleNavClick = (e) => {
+                e.preventDefault();
+                const targetPage = e.currentTarget.getAttribute('data-page');
+                
+                // Special check for Voice Settings page
+                if (targetPage === 'voice-settings-page') {
+                    // Check if settings are unlocked
+                    if (voiceSettingsPanel && voiceSettingsPanel.classList.contains('hidden')) {
+                        // Show auth panel if locked
+                        voiceAuthPanel.classList.remove('hidden');
+                        voiceSettingsPanel.classList.add('hidden');
+                        voicePasswordInput.value = ''; // Clear password on new navigation
+                        voiceAuthMessage.classList.add('hidden');
+                    } else {
+                        // Settings are unlocked, show settings panel
+                        voiceAuthPanel.classList.add('hidden');
+                        voiceSettingsPanel.classList.remove('hidden');
+                    }
+                }
+
+                showPage(targetPage);
+                // Highlight active link
+                sidebarLinks.forEach(l => l.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                
+                // Rerender agents page when navigated to
+                if (targetPage === 'agents-page') {
+                    renderAgentsPage();
+                }
+            };
+
+            // --- DATA MANIPULATION FUNCTIONS ---
+
+            const findRecording = (id, target) => {
+                const data = target === 'bin' ? binData : callData;
+                return data.find(c => c.id === id);
+            };
+
+            const updateTagsInObject = (id, newTags, target) => {
+                const data = target === 'bin' ? binData : callData;
+                const recording = data.find(c => c.id === id);
+                if (recording) {
+                    recording.tags = newTags;
+                }
+            };
+
+            const binSelectedRecordings = () => {
+                const selectedIds = Array.from(document.querySelectorAll('#recordings-tbody input[type="checkbox"]:checked'))
+                    .map(checkbox => parseInt(checkbox.dataset.id))
+                    .filter(id => id);
+
+                if (selectedIds.length === 0) {
+                    closeModal(binConfirmModal);
                     return;
                 }
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-
-            if (isListening) {
-                recognition.stop();
-            } else if (!isSpeaking) {
-                recognition.start();
-            }
-        });
-
-        async function handleUserInput(text) {
-            setStatus('सोच रही हूँ...');
-            micBtn.innerHTML = ICONS.loading;
-            micBtn.disabled = true;
-
-            try {
-                const aiResponse = await callGeminiChat(text);
-                addChatMessage(aiResponse, 'ai');
-                await speakText(aiResponse);
-            } catch (error) {
-                console.error("Error processing user input:", error);
-                const errorMessage = "Sorry, I couldn't process that. Please try again.";
-                addChatMessage(errorMessage, 'ai');
-                logError(error.message || "An unknown error occurred.");
-            } finally {
-                setStatus('शुरू करने के लिए माइक पर टैप करें');
-                micBtn.innerHTML = ICONS.mic;
-                micBtn.disabled = false;
-            }
-        }
-        
-        async function callGeminiChat(prompt) {
-             const systemPrompt = "आप एक विनम्र, आकर्षक और सहायक हिंदी एआई वॉयस असिस्टेंट हैं। अपने उत्तर संक्षिप्त और स्पष्ट रखें, जो जोर से बोले जाने के लिए उपयुक्त हों। आपको केवल हिंदी में जवाब देना है। हमेशा मैत्रीपूर्ण और विनम्र रहें।";
-             const model = 'gemini-2.5-flash-preview-05-20';
-             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-             const payload = {
-                 contents: [{ parts: [{ text: prompt }] }],
-                 systemInstruction: { parts: [{ text: systemPrompt }] },
-             };
-
-             const response = await fetch(apiUrl, {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify(payload)
-             });
-
-             if (!response.ok) {
-                 const errorBody = await response.text();
-                 throw new Error(`GenArtML API Error: ${response.status} ${errorBody}`);
-             }
-
-             const result = await response.json();
-             return result.candidates?.[0]?.content?.parts?.[0]?.text || "मुझे समझ नहीं आया कि उसका जवाब कैसे दूँ।";
-        }
-
-        async function speakText(text) {
-            setStatus('बोल रही हूँ...');
-            isSpeaking = true;
-            micBtn.disabled = true;
-
-            try {
-                await generateAndPlayAudio(text);
-            } catch (error) {
-                console.error("Error in speakText:", error);
-                logError("Sorry, there was an issue with the voice.");
-            } finally {
-                isSpeaking = false;
-                micBtn.disabled = false;
-                setStatus('शुरू करने के लिए माइक पर टैप करें');
-            }
-        }
-
-        async function generateAndPlayAudio(text) {
-            const selectedVoice = voiceSelect.value;
-            const model = 'gemini-2.5-flash-preview-tts';
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{
-                    parts: [{ text: text }]
-                }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: selectedVoice }
-                        }
+                
+                // Move records
+                callData = callData.filter(call => {
+                    if (selectedIds.includes(call.id)) {
+                        binData.push({ ...call, deletedOn: new Date() });
+                        return false; // Remove from callData
                     }
-                },
-                model: "gemini-2.5-flash-preview-tts"
+                    return true;
+                });
+                
+                closeModal(binConfirmModal);
+                renderRecordingsTable();
+                renderBinTable();
+            };
+            
+            const deleteSelectedRecordings = () => {
+                const selectedIds = Array.from(document.querySelectorAll('#bin-tbody input[type="checkbox"]:checked'))
+                    .map(checkbox => parseInt(checkbox.dataset.id))
+                    .filter(id => id);
+
+                if (selectedIds.length === 0) {
+                    closeModal(permDeleteModal);
+                    return;
+                }
+                
+                // Permanently delete
+                binData = binData.filter(call => !selectedIds.includes(call.id));
+                
+                closeModal(permDeleteModal);
+                renderBinTable();
             };
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            const restoreSelectedRecordings = () => {
+                const selectedIds = Array.from(document.querySelectorAll('#bin-tbody input[type="checkbox"]:checked'))
+                    .map(checkbox => parseInt(checkbox.dataset.id))
+                    .filter(id => id);
+
+                if (selectedIds.length === 0) {
+                    return;
+                }
+                
+                // Restore records
+                binData = binData.filter(call => {
+                    if (selectedIds.includes(call.id)) {
+                        const { deletedOn, ...rest } = call;
+                        callData.push(rest);
+                        return false; // Remove from binData
+                    }
+                    return true;
+                });
+                
+                renderRecordingsTable();
+                renderBinTable();
+            };
+
+            const clearBin = () => {
+                if(binData.length === 0) return;
+                binData = [];
+                renderBinTable();
+            }
+
+            // --- TAG EDITOR FUNCTIONS ---
+
+            const openTagEditor = (id, target) => {
+                currentEditId = id;
+                currentTagTarget = target;
+                
+                const recording = findRecording(id, target);
+                if (!recording) return;
+
+                // Clear previous tags and populate
+                tagListContainer.innerHTML = '';
+                recording.tags.forEach(tag => renderEditableTag(tag));
+                
+                openModal(tagEditorModal);
+                tagInput.focus();
+            };
+            
+            const renderEditableTag = (tag) => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-50 text-brand-primary cursor-pointer hover:bg-indigo-200 transition';
+                tagElement.textContent = tag;
+                
+                const closeIcon = document.createElement('button');
+                closeIcon.innerHTML = `<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                closeIcon.className = 'ml-1 p-0.5 text-brand-primary hover:text-indigo-800';
+                
+                closeIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    tagListContainer.removeChild(tagElement);
+                };
+                
+                tagElement.appendChild(closeIcon);
+                tagListContainer.appendChild(tagElement);
+            };
+
+            const addTagFromInput = () => {
+                const newTag = tagInput.value.trim();
+                if (newTag) {
+                    const currentTags = Array.from(tagListContainer.querySelectorAll('span')).map(el => el.textContent.replace(/.\s*$/, "").trim());
+                    if (!currentTags.includes(newTag)) {
+                        renderEditableTag(newTag);
+                    }
+                    tagInput.value = '';
+                }
+            };
+            
+            const saveTags = () => {
+                if (currentEditId === null || currentTagTarget === null) {
+                    closeModal(tagEditorModal);
+                    return;
+                }
+                
+                const newTags = Array.from(tagListContainer.querySelectorAll('span')).map(el => {
+                    // Remove the text from the close button (x) which is appended after the tag name
+                    return el.textContent.replace(/.\s*$/, "").trim();
+                });
+                
+                updateTagsInObject(currentEditId, newTags, currentTagTarget);
+
+                // Re-render the tables to reflect changes
+                if (currentTagTarget === 'callData') {
+                    renderRecordingsTable();
+                } else {
+                    renderBinTable();
+                }
+                
+                closeModal(tagEditorModal);
+                currentEditId = null;
+                currentTagTarget = null;
+                
+                // Re-open details modal if it was open (optional, but good UX)
+                if (!detailsModal.classList.contains('hidden')) {
+                    const recording = findRecording(currentEditId, currentTagTarget);
+                    if (recording) showDetails(recording);
+                }
+            };
+
+            const populateTagDropdown = () => {
+                const datalist = document.getElementById('available-tags');
+                if (!datalist) return;
+                datalist.innerHTML = availableTags.map(tag => `<option value="${tag}">`).join('');
+            };
+
+            // --- RENDER FUNCTIONS ---
+            
+            const addTableButtonListeners = () => {
+                document.querySelectorAll('.play-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        const id = parseInt(e.currentTarget.dataset.id);
+                        const target = e.currentTarget.closest('#recordings-page') ? 'callData' : 'bin';
+                        const call = findRecording(id, target);
+                        if (call) showDetails(call, target);
+                    };
+                });
+                
+                document.querySelectorAll('.edit-tag-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        const id = parseInt(e.currentTarget.dataset.id);
+                        const target = e.currentTarget.closest('#recordings-page') ? 'callData' : 'bin';
+                        // Open details modal first to view current tags
+                        const call = findRecording(id, target);
+                        if (call) {
+                            showDetails(call, target);
+                            openTagEditor(id, target);
+                        }
+                    };
+                });
+            };
+
+            const renderRecordingsTable = () => {
+                recordingsTbody.innerHTML = '';
+                if (callData.length === 0) {
+                    recordingsTbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-500">No call recordings found.</td></tr>`;
+                    return;
+                }
+
+                callData.forEach(call => {
+                    const tagsHtml = call.tags.map(formatTag).join('');
+                    const row = `
+                        <tr>
+                            <td class="p-4 w-4">
+                                <input type="checkbox" data-id="${call.id}" class="record-checkbox rounded text-brand-primary focus:ring-brand-primary">
+                            </td>
+                            <td class="p-4 text-sm font-medium text-gray-800">#${call.id}</td>
+                            <td class="p-4 text-sm font-medium text-gray-800">${call.customer}</td>
+                            <td class="p-4 text-sm text-gray-600">${call.agent}</td>
+                            <td class="p-4 text-sm text-gray-600">${formatTimestamp(call.timestamp)}</td>
+                            <td class="p-4 text-sm text-gray-600">${call.duration}</td>
+                            <td class="p-4 text-sm">${formatSentiment(call.sentiment)}</td>
+                            <td class="p-4 flex flex-wrap gap-1">${tagsHtml}</td>
+                            <td class="p-4 text-sm space-x-2 whitespace-nowrap">
+                                <button class="play-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="View Details">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.5 4.5M12 20a8 8 0 100-16 8 8 0 000 16zM9 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                                <button class="edit-tag-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="Edit Tags">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M16 7h.01M7 16h.01M16 16h.01M16 12h.01M7 12h.01M12 7h.01M12 12h.01M12 16h.01M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"></path></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    recordingsTbody.insertAdjacentHTML('beforeend', row);
+                });
+                
+                // Add event listeners after rows are created
+                addTableButtonListeners();
+            };
+            
+            const renderBinTable = () => {
+                binTbody.innerHTML = '';
+                if (binData.length === 0) {
+                    binTbody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-gray-500">The recycle bin is empty.</td></tr>`;
+                    return;
+                }
+
+                binData.forEach(call => {
+                    const row = `
+                        <tr>
+                            <td class="p-4 w-4">
+                                <input type="checkbox" data-id="${call.id}" class="bin-checkbox rounded text-brand-primary focus:ring-brand-primary">
+                            </td>
+                            <td class="p-4 text-sm font-medium text-gray-800">#${call.id}</td>
+                            <td class="p-4 text-sm font-medium text-gray-800">${call.customer}</td>
+                            <td class="p-4 text-sm text-gray-600">${timeSince(call.deletedOn)}</td>
+                            <td class="p-4 text-sm text-gray-600">${call.duration}</td>
+                            <td class="p-4 text-sm space-x-2 whitespace-nowrap">
+                                <button class="play-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="View Details">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.5 4.5M12 20a8 8 0 100-16 8 8 0 000 16zM9 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                                <button class="edit-tag-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="Edit Tags">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M16 7h.01M7 16h.01M16 16h.01M16 12h.01M7 12h.01M12 7h.01M12 12h.01M12 16h.01M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"></path></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    binTbody.insertAdjacentHTML('beforeend', row);
+                });
+                
+                addTableButtonListeners();
+            };
+
+            const showDetails = (call) => {
+                detailId.textContent = `#${call.id}`;
+                detailCustomer.textContent = call.customer;
+                detailAgent.textContent = call.agent;
+                detailTimestamp.textContent = formatTimestamp(call.timestamp);
+                detailDuration.textContent = call.duration;
+                detailTags.innerHTML = call.tags.map(formatTag).join('');
+                
+                // Populate AI Analysis
+                detailSentiment.textContent = call.sentiment;
+                detailIntent.textContent = call.intent;
+                detailSummary.textContent = call.summary;
+
+                // Reset and apply sentiment color
+                detailSentiment.classList.remove('text-green-600', 'text-red-600', 'text-gray-600');
+                switch (call.sentiment) {
+                    case 'Positive':
+                        detailSentiment.classList.add('text-green-600');
+                        break;
+                    case 'Negative':
+                        detailSentiment.classList.add('text-red-600');
+                        break;
+                    default:
+                        detailSentiment.classList.add('text-gray-600');
+                }
+                
+                openModal(detailsModal);
+            };
+
+            const renderAgentsPage = () => {
+                if (!agentGrid) return;
+                agentGrid.innerHTML = '';
+                
+                let calling = 0;
+                let learning = 0;
+                let maintenance = 0;
+
+                agentData.forEach(agent => {
+                    // Update stats
+                    if (agent.status === 'Calling') calling++;
+                    if (agent.status === 'Learning') learning++;
+                    if (agent.status === 'Maintenance') maintenance++;
+
+                    const statusColor = agent.status === 'Calling' ? 'text-green-600' : 
+                                        agent.status === 'Learning' ? 'text-blue-600' :
+                                        agent.status === 'Maintenance' ? 'text-yellow-600' : 'text-gray-600';
+
+                    const card = `
+                        <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-lg font-semibold text-gray-800">${agent.name}</h4>
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-100 text-brand-primary">${agent.specialty}</span>
+                            </div>
+                            <div class="mb-4">
+                                ${formatAgentStatus(agent.status)}
+                            </div>
+                            <div class="space-y-3 text-sm border-t pt-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Current Load:</span>
+                                    <span class="font-bold ${statusColor}">${agent.currentCalls} Calls</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Avg. Handle Time:</span>
+                                    <span class="font-medium text-gray-800">${agent.avgHandleTime}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Success Rate:</span>
+                                    <span class="font-medium text-green-600">${agent.successRate}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    agentGrid.insertAdjacentHTML('beforeend', card);
+                });
+
+                // Update stat cards
+                if (agentStatCalling) agentStatCalling.textContent = calling;
+                if (agentStatLearning) agentStatLearning.textContent = learning;
+                if (agentStatMaintenance) agentStatMaintenance.textContent = maintenance;
+            };
+
+            // --- VOICE SETTINGS FUNCTIONS (NEW) ---
+
+            const authenticateVoicePanel = () => {
+                const enteredPassword = voicePasswordInput.value;
+                if (enteredPassword === VOICE_SETTINGS_PASSWORD) {
+                    voiceAuthPanel.classList.add('hidden');
+                    voiceSettingsPanel.classList.remove('hidden');
+                    voiceAuthMessage.classList.add('hidden');
+                } else {
+                    voiceAuthMessage.classList.remove('hidden');
+                    voicePasswordInput.value = '';
+                    voicePasswordInput.focus();
+                }
+            };
+            
+            const updateSliderValue = (slider, valueElement) => {
+                valueElement.textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? slider.step.split('.')[1].length : 0);
+            };
+
+            // --- CHART INITIALIZATION ---
+            const initLiveChart = () => {
+                if (!liveCallChartCtx) return;
+                new Chart(liveCallChartCtx.canvas, {
+                    type: 'line',
+                    data: {
+                        labels: ['09:00', '09:10', '09:20', '09:30', '09:40', '09:50', '10:00'],
+                        datasets: [{
+                            label: 'Calls per Minute',
+                            data: [15, 20, 18, 25, 30, 22, 28],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            };
+
+            // --- EVENT LISTENERS ---
+
+            // Sidebar Navigation
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', handleNavClick);
+            });
+            
+            // Voice Settings Authentication (NEW)
+            if (voiceAuthenticateBtn) voiceAuthenticateBtn.addEventListener('click', authenticateVoicePanel);
+            if (voicePasswordInput) voicePasswordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    authenticateVoicePanel();
+                }
             });
 
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`GenArtML TTS API error: ${response.status} ${errorBody}`);
-            }
+            // Voice Settings Slider Handlers (NEW)
+            [
+                { slider: pitchSlider, value: pitchValue },
+                { slider: rateSlider, value: rateValue },
+                { slider: volumeSlider, value: volumeValue },
+                { slider: intensitySlider, value: intensityValue },
+                { slider: reverbSlider, value: reverbValue },
+                { slider: warmthSlider, value: warmthValue },
+                { slider: compressionSlider, value: compressionValue }
+            ].forEach(pair => {
+                if (pair.slider && pair.value) {
+                    pair.slider.addEventListener('input', () => updateSliderValue(pair.slider, pair.value));
+                }
+            });
 
-            const result = await response.json();
-            const part = result?.candidates?.[0]?.content?.parts?.[0];
-            const audioData = part?.inlineData?.data;
-            const mimeType = part?.inlineData?.mimeType;
+            // Modals Close Buttons
+            if(closeDetailsModalBtn) closeDetailsModalBtn.addEventListener('click', () => closeModal(detailsModal));
+            if(closeTagEditorModalBtn) closeTagEditorModalBtn.addEventListener('click', () => closeModal(tagEditorModal));
+            if(closeBinConfirmModalBtn) closeBinConfirmModalBtn.addEventListener('click', () => closeModal(binConfirmModal));
+            if(closePermDeleteModalBtn) closePermDeleteModalBtn.addEventListener('click', () => closeModal(permDeleteModal));
 
-            if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                if (!sampleRateMatch) throw new Error("Could not determine sample rate from mimetype.");
-                
-                const sampleRate = parseInt(sampleRateMatch[1], 10);
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, 1, sampleRate);
-                const audioUrl = URL.createObjectURL(wavBlob);
-                
-                return new Promise((resolve) => {
-                    const audio = new Audio(audioUrl);
-                    audio.onended = resolve;
-                    audio.play();
-                });
-            } else {
-                throw new Error("Invalid audio data received from API.");
-            }
-        }
-        
-        // --- AUDIO UTILITIES ---
-        function base64ToArrayBuffer(base64) {
-            const binaryString = window.atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
+            // Details Modal Actions
+            if(editTagsBtn) editTagsBtn.addEventListener('click', () => openTagEditor(currentEditId, currentTagTarget || 'callData'));
 
-        function pcmToWav(pcmData, numChannels, sampleRate) {
-            const a = pcmData.length * 2;
-            const b = sampleRate * numChannels * 2;
-            const c = numChannels * 2;
+            // Tag Editor Actions
+            if(tagInput) tagInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addTagFromInput();
+                }
+            });
+            if(saveTagsBtn) saveTagsBtn.addEventListener('click', saveTags);
             
-            const buffer = new ArrayBuffer(44 + a);
-            const view = new DataView(buffer);
+            // Recordings Table Actions
+            if(binSelectedBtn) binSelectedBtn.addEventListener('click', () => openModal(binConfirmModal));
 
-            /* RIFF identifier */
-            writeString(view, 0, 'RIFF');
-            /* file length */
-            view.setUint32(4, 36 + a, true);
-            /* RIFF type */
-            writeString(view, 8, 'WAVE');
-            /* format chunk identifier */
-            writeString(view, 12, 'fmt ');
-            /* format chunk length */
-            view.setUint32(16, 16, true);
-            /* sample format (raw) */
-            view.setUint16(20, 1, true);
-            /* channel count */
-            view.setUint16(22, numChannels, true);
-            /* sample rate */
-            view.setUint32(24, sampleRate, true);
-            /* byte rate (sample rate * block align) */
-            view.setUint32(28, b, true);
-            /* block align (channel count * bytes per sample) */
-            view.setUint16(32, c, true);
-            /* bits per sample */
-            view.setUint16(34, 16, true);
-            /* data chunk identifier */
-            writeString(view, 36, 'data');
-            /* data chunk length */
-            view.setUint32(40, a, true);
+            // Bin Page Actions
+            if(restoreSelectedBtn) restoreSelectedBtn.addEventListener('click', restoreSelectedRecordings);
+            if(clearBinBtn) clearBinBtn.addEventListener('click', clearBin);
+            if(permDeleteSelectedBtn) permDeleteSelectedBtn.addEventListener('click', () => openModal(permDeleteModal));
+            
+            // Confirmation Modal Actions
+            if(confirmBinBtn) confirmBinBtn.addEventListener('click', binSelectedRecordings);
+            if(confirmPermDeleteBtn) confirmPermDeleteBtn.addEventListener('click', deleteSelectedRecordings);
 
-            // Write PCM data
-            let offset = 44;
-            for (let i = 0; i < pcmData.length; i++, offset += 2) {
-                view.setInt16(offset, pcmData[i], true);
-            }
+            // Init Function
+            const init = () => {
+                // Ensure initial IDs are set for tag editing context
+                currentEditId = callData.length > 0 ? callData[0].id : null;
+                currentTagTarget = 'callData';
+                
+                showPage('dashboard-page');
+                renderRecordingsTable();
+                renderBinTable();
+                renderAgentsPage();
+                populateTagDropdown();
+                initLiveChart();
 
-            return new Blob([view], { type: 'audio/wav' });
-        }
+                // Initialize all slider displays
+                [
+                    { slider: pitchSlider, value: pitchValue },
+                    { slider: rateSlider, value: rateValue },
+                    { slider: volumeSlider, value: volumeValue },
+                    { slider: intensitySlider, value: intensityValue },
+                    { slider: reverbSlider, value: reverbValue },
+                    { slider: warmthSlider, value: warmthValue },
+                    { slider: compressionSlider, value: compressionValue }
+                ].forEach(pair => {
+                    if (pair.slider && pair.value) {
+                        updateSliderValue(pair.slider, pair.value);
+                    }
+                });
+            };
+            
+            init();
 
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-
+        });
     </script>
 </body>
 </html>
-
