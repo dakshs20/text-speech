@@ -1,1357 +1,786 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Callex AI Dashboard</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f9;
-        }
-        .sidebar {
-            width: 280px;
-            background-color: #1a202c; /* Dark primary */
-            color: #e2e8f0;
-        }
-        .nav-link {
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
-        }
-        .nav-link:hover {
-            background-color: #2d3748;
-        }
-        .nav-link.active {
-            background-color: #4a5568;
-            color: #ffffff;
-            font-weight: 600;
-        }
-        .page-content {
-            min-height: calc(100vh - 4rem); /* Adjust based on header height */
-            padding: 1.5rem;
-        }
-        /* Custom brand color (Indigo 600) */
-        .text-brand-primary { color: #4f46e5; }
-        .bg-brand-primary { background-color: #4f46e5; }
-        .bg-brand-light { background-color: #eef2ff; }
+import React, { useState, useEffect } from 'react';
+import { 
+  Menu, X, MapPin, Calendar, Users, Star, ArrowRight, 
+  CheckCircle, Phone, Mail, Instagram, Facebook, Linkedin, 
+  Youtube, Globe, ChevronRight, Heart, Leaf, Clock, ShieldCheck 
+} from 'lucide-react';
 
-        /* Modal styling */
-        .modal {
-            transition: opacity 0.25s ease;
-        }
+// --- ASSETS & DATA ---
 
-        .slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 15px;
-            height: 15px;
-            background: #4f46e5;
-            cursor: pointer;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 2px rgba(0,0,0,0.3);
-        }
-        .slider-track {
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-        }
-        input[type=range]::-webkit-slider-thumb { @apply slider-thumb; }
-        input[type=range]::-moz-range-thumb { @apply slider-thumb; }
-        input[type=range]::-ms-thumb { @apply slider-thumb; }
-        input[type=range]::-webkit-slider-runnable-track { @apply slider-track; }
-        input[type=range]::-moz-range-track { @apply slider-track; }
-        input[type=range]::-ms-track { @apply slider-track; }
+const BRAND_COLORS = {
+  charcoal: '#111217',
+  gold: '#C9A34B',
+  stone: '#F5F4F6',
+  teal: '#6CA8A6'
+};
 
-    </style>
-</head>
-<body class="flex min-h-screen">
-    
-    <!-- Sidebar -->
-    <aside class="sidebar h-full fixed top-0 left-0 pt-8 shadow-2xl">
-        <div class="px-6 mb-10">
-            <h1 class="text-3xl font-bold text-white">Callex AI</h1>
-            <p class="text-sm text-indigo-300">Intelligent Voice Analytics</p>
+const PACKAGES = [
+  {
+    id: 1,
+    title: "Luxury Escape — Palatial Coastal Retreat",
+    tagline: "Handpicked villas, private experiences.",
+    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
+    price: "₹49,999",
+    priceUnit: "/ person",
+    duration: "5 nights",
+    pax: "2 Adults",
+    rating: 4.9,
+    category: "Luxury",
+    inclusions: [
+      "Premium sea-view suite",
+      "Daily breakfast",
+      "Private sunset cruise",
+      "Airport transfers",
+      "One gourmet dining experience"
+    ],
+    itinerary: [
+      { day: 1, activity: "Arrival & Welcome Drinks at Sunset Lounge" },
+      { day: 2, activity: "Private Beach Cabana & Spa Session" },
+      { day: 3, activity: "Coastal Yacht Cruise" },
+      { day: 4, activity: "Gourmet Dining Experience" },
+      { day: 5, activity: "Departure with Souvenir Gift" }
+    ]
+  },
+  {
+    id: 2,
+    title: "Family Getaway — Theme & Comfort",
+    tagline: "Kid-friendly amenities, nanny-on-request.",
+    image: "https://images.unsplash.com/photo-1571896349842-6e5c48dc52a3?auto=format&fit=crop&w=800&q=80",
+    price: "₹24,999",
+    priceUnit: "/ family",
+    duration: "4 nights",
+    pax: "2 Adults, 2 Kids",
+    rating: 4.8,
+    category: "Family",
+    inclusions: [
+      "Family suite",
+      "Kids’ activity pass",
+      "Theme-park day",
+      "Daily breakfast",
+      "Shuttle service"
+    ],
+    itinerary: [
+      { day: 1, activity: "Check-in & Kids Club Orientation" },
+      { day: 2, activity: "Full Day Theme Park Access" },
+      { day: 3, activity: "Family Pool Party & BBQ" },
+      { day: 4, activity: "Breakfast & Departure" }
+    ]
+  },
+  {
+    id: 3,
+    title: "Romance Retreat — Boutique Honeymoon",
+    tagline: "Privacy-first experiences, sunset proposals.",
+    image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80",
+    price: "₹34,999",
+    priceUnit: "/ couple",
+    duration: "3 nights",
+    pax: "Couples",
+    rating: 5.0,
+    category: "Romantic",
+    inclusions: [
+      "Romantic suite setup",
+      "Candlelight dinner",
+      "Couple’s spa",
+      "Private picnic"
+    ],
+    itinerary: [
+      { day: 1, activity: "Welcome Champagne & Rose Petal Setup" },
+      { day: 2, activity: "Couples Massage & Private Beach Picnic" },
+      { day: 3, activity: "Candlelight Dinner under the Stars" }
+    ]
+  },
+  {
+    id: 4,
+    title: "Adventure Trails — Active Escape",
+    tagline: "Local guides, small-group safety-first.",
+    image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?auto=format&fit=crop&w=800&q=80",
+    price: "₹29,999",
+    priceUnit: "/ person",
+    duration: "6 nights",
+    pax: "Small Group",
+    rating: 4.7,
+    category: "Adventure",
+    inclusions: [
+      "Guided treks",
+      "Equipment rental",
+      "Local village visits",
+      "Camping night with chef",
+      "Transfers"
+    ],
+    itinerary: [
+      { day: 1, activity: "Base Camp Arrival & Briefing" },
+      { day: 2, activity: "Mountain Trek - Phase 1" },
+      { day: 3, activity: "Village Immersion & Culture Tour" },
+      { day: 4, activity: "River Rafting Excursion" },
+      { day: 5, activity: "Luxury Camping Night" },
+      { day: 6, activity: "Descent & Farewell Lunch" }
+    ]
+  },
+  {
+    id: 5,
+    title: "Corporate & MICE — Executive Retreat",
+    tagline: "Dedicated event manager, hybrid meeting tech.",
+    image: "https://images.unsplash.com/photo-1576085898323-218337e3e43c?auto=format&fit=crop&w=800&q=80",
+    price: "Custom",
+    priceUnit: "on enquiry",
+    duration: "Custom",
+    pax: "Groups 10+",
+    rating: 4.9,
+    category: "Corporate",
+    inclusions: [
+      "Conference halls & AV",
+      "Team-building activities",
+      "F&B packages",
+      "Accommodation blocks",
+      "Event manager"
+    ],
+    itinerary: [
+      { day: 1, activity: "Check-in & Welcome Cocktail" },
+      { day: 2, activity: "Conference Session AM / Team Building PM" },
+      { day: 3, activity: "Gala Dinner" }
+    ]
+  }
+];
+
+// --- COMPONENTS ---
+
+const Button = ({ children, variant = 'primary', className = '', onClick }) => {
+  const baseStyle = "px-6 py-3 rounded-full font-medium transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95";
+  
+  const variants = {
+    primary: `bg-[#C9A34B] text-white hover:bg-[#b08d3e] hover:shadow-lg`,
+    secondary: `bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#111217]`,
+    outlineDark: `bg-transparent border-2 border-[#111217] text-[#111217] hover:bg-[#111217] hover:text-white`,
+    ghost: `text-[#C9A34B] hover:text-[#b08d3e] underline-offset-4 hover:underline p-0`
+  };
+
+  return (
+    <button 
+      onClick={onClick}
+      className={`${baseStyle} ${variants[variant]} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
+
+const SectionHeader = ({ title, subtitle, centered = true }) => (
+  <div className={`mb-12 ${centered ? 'text-center' : 'text-left'} max-w-4xl mx-auto`}>
+    <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#111217] mb-4">{title}</h2>
+    <p className="text-[#6CA8A6] text-lg font-light max-w-2xl mx-auto leading-relaxed">
+      {subtitle}
+    </p>
+    <div className={`h-1 w-20 bg-[#C9A34B] mt-6 ${centered ? 'mx-auto' : ''}`}></div>
+  </div>
+);
+
+// --- MAIN APP COMPONENT ---
+
+const App = () => {
+  const [activePage, setActivePage] = useState('home');
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isTripBuilderOpen, setIsTripBuilderOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Trip Builder State
+  const [tripStep, setTripStep] = useState(0);
+  const [tripData, setTripData] = useState({ mood: '', duration: '', budget: '' });
+  const [tripResult, setTripResult] = useState(null);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleNavigate = (page) => {
+    setActivePage(page);
+    setIsMenuOpen(false);
+    window.scrollTo(0, 0);
+  };
+
+  const handleViewPackage = (pkg) => {
+    setSelectedPackage(pkg);
+    setActivePage('detail');
+    window.scrollTo(0, 0);
+  };
+
+  const runTripBuilder = () => {
+    // Simulate AI processing
+    setTimeout(() => {
+      setTripResult(PACKAGES[Math.floor(Math.random() * 3)]); // Random pick for demo
+      setTripStep(2);
+    }, 1500);
+  };
+
+  // --- SUB-VIEWS ---
+
+  const HomeView = () => (
+    <>
+      {/* Hero Section */}
+      <header className="relative h-screen min-h-[600px] flex items-center text-white overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=80" 
+            alt="Luxury Hotel Skyline" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#111217]/90 via-[#111217]/40 to-transparent"></div>
+          {/* Animated particles hint */}
+          <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse"></div>
         </div>
-        <nav class="px-4">
-            <ul>
-                <li class="mb-2">
-                    <a href="#" class="nav-link active" data-page="dashboard-page">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="nav-link" data-page="recordings-page">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
-                        Recordings
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="nav-link" data-page="bin-page">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        Bin
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="nav-link" data-page="agents-page">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        AI Agents
-                    </a>
-                </li>
-                <!-- NEW VOICE SETTINGS LINK -->
-                <li class="mb-2">
-                    <a href="#" class="nav-link" data-page="voice-settings-page">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                        Voice Settings Panel
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
 
-    <!-- Main Content -->
-    <div class="flex-1 ml-70 md:ml-72">
-        <header class="h-16 flex items-center justify-between px-6 bg-white shadow-md">
-            <div class="text-xl font-medium text-gray-800">Analytics Overview</div>
-            <div class="flex items-center space-x-4">
-                <span class="text-sm font-medium text-gray-600">Admin User</span>
-                <div class="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-800 font-bold">A</div>
+        <div className="container mx-auto px-6 relative z-10 pt-20">
+          <div className="max-w-2xl">
+            <div className="inline-block px-3 py-1 mb-6 border border-[#C9A34B] rounded text-[#C9A34B] text-sm tracking-widest uppercase">
+              The Grand Favourait
             </div>
-        </header>
-
-        <main class="p-6">
-            
-            <!-- Dynamic Content Area -->
-            <div id="content-area">
-                
-                <!-- ======================================== -->
-                <!--             Dashboard Page               -->
-                <!-- ======================================== -->
-                <div id="dashboard-page" class="page-content">
-                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Overview</h2>
-                    
-                    <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-green-500">
-                            <h3 class="text-sm font-medium text-gray-500 mb-2">Total Calls Handled (24h)</h3>
-                            <p class="text-3xl font-bold text-gray-900">1,452</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-brand-primary">
-                            <h3 class="text-sm font-medium text-gray-500 mb-2">Success Rate</h3>
-                            <p class="text-3xl font-bold text-brand-primary">89.4%</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-yellow-500">
-                            <h3 class="text-sm font-medium text-gray-500 mb-2">Avg. Handle Time</h3>
-                            <p class="text-3xl font-bold text-gray-900">03:12</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-red-500">
-                            <h3 class="text-sm font-medium text-gray-500 mb-2">Negative Sentiment</h3>
-                            <p class="text-3xl font-bold text-gray-900">12.5%</p>
-                        </div>
-                    </div>
-
-                    <!-- Live Call Chart -->
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Live Call Volume (Past Hour)</h3>
-                        <div class="h-80">
-                            <canvas id="liveCallChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Top Tags / Recent Activity -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Top 5 Intents Detected</h3>
-                            <ul class="space-y-3">
-                                <li class="flex justify-between items-center py-2 border-b">
-                                    <span class="text-gray-700">New Dish Sale</span>
-                                    <span class="text-lg font-bold text-brand-primary">45%</span>
-                                </li>
-                                <li class="flex justify-between items-center py-2 border-b">
-                                    <span class="text-gray-700">Recharge Inquiry</span>
-                                    <span class="text-lg font-bold text-brand-primary">22%</span>
-                                </li>
-                                <li class="flex justify-between items-center py-2 border-b">
-                                    <span class="text-gray-700">Service Issue Complaint</span>
-                                    <span class="text-lg font-bold text-brand-primary">15%</span>
-                                </li>
-                                <li class="flex justify-between items-center py-2 border-b">
-                                    <span class="text-gray-700">Not Willing to Recharge</span>
-                                    <span class="text-lg font-bold text-brand-primary">10%</span>
-                                </li>
-                                <li class="flex justify-between items-center py-2">
-                                    <span class="text-gray-700">Callback Request</span>
-                                    <span class="text-lg font-bold text-brand-primary">8%</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Agent Activity</h3>
-                            <ul class="space-y-3">
-                                <li class="text-sm text-gray-700">
-                                    <span class="font-medium text-gray-900">Jane D.</span> tagged call <span class="text-brand-primary">#456</span> as 'Language_Barrier'.
-                                </li>
-                                <li class="text-sm text-gray-700">
-                                    <span class="font-medium text-gray-900">AI Agent</span> completed a 'New Dish Sale' on call <span class="text-brand-primary">#123</span>.
-                                </li>
-                                <li class="text-sm text-gray-700">
-                                    <span class="font-medium text-gray-900">John S.</span> opened ticket for call <span class="text-brand-primary">#901</span> ('Service_Issue').
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ======================================== -->
-                <!--           Recordings Page                -->
-                <!-- ======================================== -->
-                <div id="recordings-page" class="page-content hidden">
-                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Call Recordings</h2>
-                    
-                    <!-- Action Bar -->
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center space-x-2">
-                            <input type="text" placeholder="Search customer, agent, or tag..." class="p-2 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary w-80">
-                            <button class="px-4 py-2 bg-brand-primary text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition">Search</button>
-                        </div>
-                        <button id="bin-selected-btn" class="px-4 py-2 text-red-600 border border-red-200 bg-red-50 font-medium rounded-lg shadow-md hover:bg-red-100 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            Move to Bin
-                        </button>
-                    </div>
-
-                    <!-- Recordings Table -->
-                    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="p-4 w-4">
-                                        <input type="checkbox" id="select-all-recordings" class="rounded text-brand-primary focus:ring-brand-primary">
-                                    </th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Agent</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date & Time</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sentiment</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tags</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recordings-tbody" class="bg-white divide-y divide-gray-200">
-                                <!-- Table rows will be inserted here by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ======================================== -->
-                <!--               Bin Page                   -->
-                <!-- ======================================== -->
-                <div id="bin-page" class="page-content hidden">
-                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Recycle Bin</h2>
-                    <p class="text-gray-600 mb-4">Recordings moved here are retained for 30 days before permanent deletion.</p>
-
-                    <!-- Action Bar -->
-                    <div class="flex justify-end items-center space-x-3 mb-4">
-                        <button id="restore-selected-btn" class="px-4 py-2 bg-green-500 text-white font-medium rounded-lg shadow-md hover:bg-green-600 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3 10a9 9 0 0 1 18 0v2a9 9 0 0 1-18 0v-2"></path></svg>
-                            Restore Selected
-                        </button>
-                        <button id="perm-delete-selected-btn" class="px-4 py-2 text-red-600 border border-red-200 bg-red-50 font-medium rounded-lg shadow-md hover:bg-red-100 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            Permanent Delete Selected
-                        </button>
-                        <button id="clear-bin-btn" class="px-4 py-2 text-red-600 border border-red-200 bg-red-50 font-medium rounded-lg shadow-md hover:bg-red-100 transition">
-                            Clear Bin
-                        </button>
-                    </div>
-
-                    <!-- Bin Table -->
-                    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="p-4 w-4">
-                                        <input type="checkbox" id="select-all-bin" class="rounded text-brand-primary focus:ring-brand-primary">
-                                    </th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Deleted On</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
-                                    <th class="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bin-tbody" class="bg-white divide-y divide-gray-200">
-                                <!-- Table rows will be inserted here by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ======================================== -->
-                <!--             AI Agents Page               -->
-                <!-- ======================================== -->
-                <div id="agents-page" class="page-content hidden">
-                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">AI Agent Management</h2>
-                    
-                    <!-- Agent Stats Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Agents</h3>
-                            <p class="text-3xl font-bold text-gray-900">47</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">Actively Calling</h3>
-                            <p id="agent-stat-calling" class="text-3xl font-bold text-green-600">--</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">In Learning</h3>
-                            <p id="agent-stat-learning" class="text-3xl font-bold text-blue-600">--</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">In Maintenance</h3>
-                            <p id="agent-stat-maintenance" class="text-3xl font-bold text-gray-500">--</p>
-                        </div>
-                    </div>
-
-                    <!-- Agent Grid -->
-                    <div id="agent-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        <!-- JS will populate this grid -->
-                    </div>
-                </div>
-
-                <!-- ======================================== -->
-                <!--         Voice Settings Page              -->
-                <!-- ======================================== -->
-                <div id="voice-settings-page" class="page-content hidden">
-                    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Voice Settings Panel</h2>
-
-                    <!-- Authentication Panel -->
-                    <div id="voice-auth-panel" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md mx-auto my-20">
-                        <div class="text-center mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            <h3 class="text-xl font-bold text-gray-800 mt-3">Access Restricted</h3>
-                            <p class="text-gray-600 text-sm">This panel contains critical voice modulation settings. Please authenticate to proceed.</p>
-                        </div>
-                        <div class="space-y-4">
-                            <input type="password" id="voice-password-input" placeholder="Enter password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
-                            <button id="voice-authenticate-btn" class="w-full p-3 bg-brand-primary text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
-                                Unlock Settings
-                            </button>
-                            <p id="voice-auth-message" class="text-center text-sm text-red-600 hidden">Incorrect password. Try again.</p>
-                        </div>
-                    </div>
-
-                    <!-- Settings Panel (Hidden by default) -->
-                    <div id="voice-settings-panel" class="hidden">
-                        <p class="text-gray-600 mb-8">Configure the fundamental voice characteristics for your AI Agents. These settings impact all outgoing calls.</p>
-                        
-                        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-
-                            <!-- Core Modulation Settings -->
-                            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-brand-primary">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Core Voice Modulation</h3>
-                                <div class="space-y-6">
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Pitch (Semitones)</span>
-                                            <span id="pitch-value" class="text-brand-primary font-bold">0.0</span>
-                                        </label>
-                                        <input type="range" id="pitch-slider" min="-12.0" max="12.0" step="0.1" value="0.0" class="w-full">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Low/Deep</span><span>Natural</span><span>High/Squeaky</span></div>
-                                    </div>
-                                    
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Speaking Rate (Factor)</span>
-                                            <span id="rate-value" class="text-brand-primary font-bold">1.00</span>
-                                        </label>
-                                        <input type="range" id="rate-slider" min="0.5" max="2.0" step="0.01" value="1.0" class="w-full">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Slow</span><span>Normal</span><span>Fast</span></div>
-                                    </div>
-
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Volume Gain (dB)</span>
-                                            <span id="volume-value" class="text-brand-primary font-bold">0.0</span>
-                                        </label>
-                                        <input type="range" id="volume-slider" min="-10.0" max="10.0" step="0.5" value="0.0" class="w-full">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Soft</span><span>Default</span><span>Loud</span></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Emotional Tone Selection -->
-                            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-purple-500">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Emotional Tone & Style</h3>
-                                <div class="space-y-4">
-                                    <label class="block text-sm font-medium text-gray-700">Primary Tone Focus</label>
-                                    <select id="tone-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
-                                        <option value="professional">Professional / Neutral</option>
-                                        <option value="friendly">Warm / Friendly</option>
-                                        <option value="empathetic">Empathetic / Calming</option>
-                                        <option value="assertive">Assertive / Formal</option>
-                                        <option value="enthusiastic">Enthusiastic / Upbeat</option>
-                                    </select>
-                                    
-                                    <div class="control-group pt-2">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Tone Intensity (0-100)</span>
-                                            <span id="intensity-value" class="text-purple-600 font-bold">50</span>
-                                        </label>
-                                        <input type="range" id="intensity-slider" min="0" max="100" step="1" value="50" class="w-full accent-purple-500">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Subtle</span><span>Medium</span><span>Strong</span></div>
-                                    </div>
-
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700">Accent Preference (Hindi)</label>
-                                        <select id="accent-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
-                                            <option value="standard_hindi">Standard Hindi</option>
-                                            <option value="maharashtrian">Maharashtrian Hindi</option>
-                                            <option value="gujarati">Gujarati Hindi</option>
-                                            <option value="bengali">Bengali Hindi</option>
-                                            <option value="delhi">Delhi/Haryanvi Hindi</option>
-                                            <option value="bihari">Bihari Hindi</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Fine-Grained Filters -->
-                            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-teal-500">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Acoustic Filters & Effects</h3>
-                                <div class="space-y-6">
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Reverberation Level (ms)</span>
-                                            <span id="reverb-value" class="text-teal-600 font-bold">50</span>
-                                        </label>
-                                        <input type="range" id="reverb-slider" min="0" max="500" step="10" value="50" class="w-full accent-teal-500">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Dry</span><span>Studio</span><span>Echo Chamber</span></div>
-                                    </div>
-                                    
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Vocal Warmth / Depth (Hz)</span>
-                                            <span id="warmth-value" class="text-teal-600 font-bold">120</span>
-                                        </label>
-                                        <input type="range" id="warmth-slider" min="80" max="300" step="5" value="120" class="w-full accent-teal-500">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Thin</span><span>Default</span><span>Rich</span></div>
-                                    </div>
-                                    
-                                    <div class="control-group">
-                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
-                                            <span>Compression Ratio (1:x)</span>
-                                            <span id="compression-value" class="text-teal-600 font-bold">4.0</span>
-                                        </label>
-                                        <input type="range" id="compression-slider" min="1.0" max="10.0" step="0.5" value="4.0" class="w-full accent-teal-500">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>Subtle</span><span>Standard</span><span>Aggressive</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-10 pt-6 border-t border-gray-200 flex justify-between items-center">
-                            <button class="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-                                Test Current Voice
-                            </button>
-                            <button class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-xl hover:bg-green-700 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                Apply All Global Settings
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </main>
+            <h1 className="text-5xl md:text-7xl font-serif font-bold leading-tight mb-6">
+              Escape Ordinary.<br />
+              <span className="text-[#C9A34B]">Arrive Exceptional.</span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-200 mb-10 font-light max-w-lg leading-relaxed">
+              Exclusive stays, tailor-made packages, and concierge-grade service across premium destinations.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={() => document.getElementById('packages').scrollIntoView({behavior: 'smooth'})}>
+                Explore Packages
+              </Button>
+              <Button variant="secondary" onClick={() => { setIsTripBuilderOpen(true); setTripStep(0); }}>
+                Plan My Trip (AI)
+              </Button>
+            </div>
+          </div>
         </div>
-    </div>
+      </header>
 
-    <!-- Modals (All existing modals remain here) -->
-    <!-- Details Modal -->
-    <div id="details-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all p-6">
-            <div class="flex justify-between items-start border-b pb-3 mb-4">
-                <h3 class="text-2xl font-semibold text-gray-800">Call Details <span id="detail-id" class="text-sm font-normal text-gray-500 ml-2"></span></h3>
-                <button id="close-details-modal-btn" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Customer</label>
-                    <p id="detail-customer" class="text-lg text-gray-900"></p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Agent</label>
-                    <p id="detail-agent" class="text-lg text-gray-900"></p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Date & Time</label>
-                    <p id="detail-timestamp" class="text-lg text-gray-900"></p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Duration</label>
-                    <p id="detail-duration" class="text-lg text-gray-900"></p>
-                </div>
-            </div>
-
-            <!-- AI Analysis -->
-            <div id="ai-analysis-section" class="bg-brand-light p-4 rounded-lg border border-indigo-200 mb-6">
-                <h4 class="text-sm font-semibold text-gray-800 mb-3">AI Analysis</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Sentiment</label>
-                        <p id="detail-sentiment" class="text-lg font-medium"></p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Detected Intent</label>
-                        <p id="detail-intent" class="text-lg text-gray-900"></p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <label class="text-sm font-medium text-gray-500">AI Summary</label>
-                    <p id="detail-summary" class="text-sm text-gray-700 mt-1"></p>
-                </div>
-            </div>
-
-            <!-- Audio Player (Placeholder) -->
+      {/* Features / Intro */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-                <label class="text-sm font-medium text-gray-500 block mb-2">Audio Playback</label>
-                <audio controls class="w-full bg-gray-100 rounded-lg p-2">
-                    <source src="placeholder.mp3" type="audio/mp3">
-                    Your browser does not support the audio element.
-                </audio>
+               <h3 className="text-[#C9A34B] font-bold tracking-widest uppercase mb-2">About The Grand Favourait</h3>
+               <h2 className="text-4xl font-serif font-bold text-[#111217] mb-6">Curated Journeys. <br/>Crafted Comfort.</h2>
+               <p className="text-gray-600 mb-6 leading-relaxed">
+                 We are a hospitality curator blending refined comfort with destination expertise. Each package is handcrafted to deliver authentic local experiences, seamless logistics, and uncompromising standards of service. 
+               </p>
+               <p className="text-gray-600 mb-8 leading-relaxed">
+                 We combine seasoned travel design with modern digital convenience — from AI-assisted itineraries to 24/7 concierge.
+               </p>
+               <div className="grid grid-cols-2 gap-6">
+                 <div className="flex items-start gap-3">
+                   <Star className="text-[#C9A34B] w-6 h-6 mt-1" />
+                   <div>
+                     <h4 className="font-bold text-[#111217]">5-Star Service</h4>
+                     <p className="text-sm text-gray-500">Concierge grade support.</p>
+                   </div>
+                 </div>
+                 <div className="flex items-start gap-3">
+                   <Globe className="text-[#C9A34B] w-6 h-6 mt-1" />
+                   <div>
+                     <h4 className="font-bold text-[#111217]">Local Experts</h4>
+                     <p className="text-sm text-gray-500">Authentic experiences.</p>
+                   </div>
+                 </div>
+               </div>
             </div>
+            <div className="relative">
+              <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#C9A34B] rounded-2xl"></div>
+              <img 
+                src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" 
+                alt="Concierge" 
+                className="rounded-2xl shadow-xl relative z-10 w-full"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <div class="mt-6">
-                <label class="text-sm font-medium text-gray-500 block mb-2">Tags</label>
-                <div id="detail-tags" class="flex flex-wrap gap-2">
-                    <!-- Tags will be injected here -->
+      {/* Packages Grid */}
+      <section id="packages" className="py-20 bg-[#F5F4F6]">
+        <div className="container mx-auto px-6">
+          <SectionHeader 
+            title="Handpicked Collections" 
+            subtitle="Discover our most popular curated experiences, designed for memory-making." 
+          />
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {PACKAGES.map((pkg) => (
+              <div key={pkg.id} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div className="relative h-64 overflow-hidden">
+                  <img 
+                    src={pkg.image} 
+                    alt={pkg.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-[#111217]">
+                    {pkg.category}
+                  </div>
                 </div>
-            </div>
-
-            <div class="flex justify-end pt-4 mt-4 border-t">
-                <button id="edit-tags-btn" class="px-4 py-2 bg-brand-primary text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition">
-                    Edit Tags
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tag Editor Modal -->
-    <div id="tag-editor-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all p-6">
-            <div class="flex justify-between items-start border-b pb-3 mb-4">
-                <h3 class="text-2xl font-semibold text-gray-800">Edit Tags</h3>
-                <button id="close-tag-editor-modal-btn" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 block mb-2">Current Tags (Click to remove)</label>
-                <div id="tag-list-container" class="flex flex-wrap gap-2 min-h-[40px] border border-gray-300 p-2 rounded-lg bg-gray-50">
-                    <!-- Editable tags injected here -->
+                <div className="p-6">
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <Clock className="w-4 h-4" /> {pkg.duration}
+                    <span className="mx-1">·</span>
+                    <Users className="w-4 h-4" /> {pkg.pax}
+                  </div>
+                  <h3 className="text-xl font-serif font-bold text-[#111217] mb-2 group-hover:text-[#C9A34B] transition-colors">
+                    {pkg.title.split("—")[0]}
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">{pkg.tagline}</p>
+                  
+                  <div className="flex items-end justify-between mt-4 pt-4 border-t border-gray-100">
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wider">Starting from</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-bold text-[#111217]">{pkg.price}</span>
+                        <span className="text-xs text-gray-500">{pkg.priceUnit}</span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleViewPackage(pkg)}
+                      className="w-10 h-10 rounded-full bg-[#F5F4F6] text-[#111217] flex items-center justify-center hover:bg-[#111217] hover:text-[#C9A34B] transition-colors"
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-            </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div class="mb-6">
-                <label for="tag-input" class="text-sm font-medium text-gray-700 block mb-2">Add New Tag</label>
-                <div class="relative">
-                    <input type="text" id="tag-input" list="available-tags" placeholder="Type or select a tag and press Enter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
-                    <datalist id="available-tags">
-                        <!-- Options will be populated by JS -->
-                    </datalist>
+      {/* Features Strip */}
+      <section className="py-16 bg-[#111217] text-white">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            {[
+              { icon: <ShieldCheck />, title: "Secure Booking", text: "Encrypted payments & instant confirmation." },
+              { icon: <Leaf />, title: "Sustainability", text: "Eco-certified partner hotels." },
+              { icon: <Heart />, title: "Curated Quality", text: "Every property personally vetted." },
+              { icon: <Phone />, title: "24/7 Support", text: "Always here when you need us." }
+            ].map((f, i) => (
+              <div key={i} className="p-4">
+                <div className="w-12 h-12 mx-auto mb-4 text-[#C9A34B] flex items-center justify-center bg-[#C9A34B]/10 rounded-full">
+                  {f.icon}
                 </div>
-            </div>
-
-            <div class="flex justify-end pt-4 border-t">
-                <button id="save-tags-btn" class="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition">
-                    Save Changes
-                </button>
-            </div>
+                <h4 className="font-bold text-lg mb-2">{f.title}</h4>
+                <p className="text-gray-400 text-sm">{f.text}</p>
+              </div>
+            ))}
+          </div>
         </div>
-    </div>
+      </section>
+    </>
+  );
 
-    <!-- Bin Confirmation Modal -->
-    <div id="bin-confirm-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all p-6 text-center">
-            <div class="text-yellow-500 mb-4">
-                <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Move to Bin?</h3>
-            <p class="text-gray-600 mb-6">Are you sure you want to move the selected recording(s) to the recycle bin?</p>
-            <div class="flex justify-center space-x-4">
-                <button id="close-bin-confirm-modal-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
-                    Cancel
-                </button>
-                <button id="confirm-bin-btn" class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg shadow-md hover:bg-red-700 transition">
-                    Move
-                </button>
-            </div>
+  const DetailView = ({ pkg }) => (
+    <div className="bg-[#F5F4F6] min-h-screen pb-20 pt-20">
+      {/* Detail Hero */}
+      <div className="relative h-[60vh] w-full">
+        <img src={pkg.image} alt={pkg.title} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/40 flex items-end">
+          <div className="container mx-auto px-6 pb-12 text-white">
+             <button 
+                onClick={() => setActivePage('home')} 
+                className="mb-6 flex items-center gap-2 hover:text-[#C9A34B] transition-colors"
+             >
+               ← Back to collections
+             </button>
+             <div className="bg-[#C9A34B] text-xs font-bold px-3 py-1 inline-block rounded mb-4">
+                {pkg.category} Collection
+             </div>
+             <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">{pkg.title}</h1>
+             <div className="flex flex-wrap gap-6 text-sm md:text-base font-medium">
+                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#C9A34B]"/> {pkg.duration}</span>
+                <span className="flex items-center gap-2"><Users className="w-4 h-4 text-[#C9A34B]"/> {pkg.pax}</span>
+                <span className="flex items-center gap-2"><Star className="w-4 h-4 text-[#C9A34B]"/> {pkg.rating}/5.0 Rating</span>
+             </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Permanent Delete Modal -->
-    <div id="perm-delete-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all p-6 text-center">
-            <div class="text-red-500 mb-4">
-                <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+      <div className="container mx-auto px-6 -mt-10 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Overview */}
+            <div className="bg-white p-8 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-serif font-bold text-[#111217] mb-4">Experience Overview</h3>
+              <p className="text-gray-600 leading-relaxed mb-6">{pkg.tagline} This exclusive package is designed for travelers seeking immersion without compromising on luxury. From the moment you arrive, every detail is managed by our concierge team.</p>
+              
+              <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                <CheckCircle className="text-[#6CA8A6] w-5 h-5" /> What's Included
+              </h4>
+              <ul className="grid md:grid-cols-2 gap-3">
+                {pkg.inclusions.map((inc, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-gray-600 text-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#C9A34B] mt-2"></span>
+                    {inc}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Permanent Deletion</h3>
-            <p class="text-gray-600 mb-6">This action is irreversible. Permanently delete the selected recording(s)?</p>
-            <div class="flex justify-center space-x-4">
-                <button id="close-perm-delete-modal-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
-                    Cancel
-                </button>
-                <button id="confirm-perm-delete-btn" class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg shadow-md hover:bg-red-700 transition">
-                    Delete Permanently
-                </button>
+
+            {/* Itinerary */}
+            <div className="bg-white p-8 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-serif font-bold text-[#111217] mb-6">Day-by-Day Itinerary</h3>
+              <div className="space-y-6">
+                {pkg.itinerary.map((day, idx) => (
+                  <div key={idx} className="flex gap-4">
+                    <div className="flex-shrink-0 w-12 text-center">
+                       <span className="block text-xs text-gray-400 uppercase">Day</span>
+                       <span className="block text-xl font-bold text-[#C9A34B]">{day.day}</span>
+                    </div>
+                    <div className="pb-6 border-b border-gray-100 w-full last:border-0">
+                      <h4 className="font-bold text-[#111217]">{day.activity}</h4>
+                      <p className="text-sm text-gray-500 mt-1">Scheduled activities, meals, and transport included.</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Map Placeholder */}
+            <div className="bg-white p-2 rounded-xl shadow-sm h-64 relative overflow-hidden group">
+               <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity" alt="Map" />
+               <div className="absolute inset-0 flex items-center justify-center">
+                 <button className="bg-white px-4 py-2 rounded-lg shadow-lg font-bold text-[#111217] flex items-center gap-2">
+                   <MapPin className="text-[#C9A34B] w-4 h-4"/> View on Map
+                 </button>
+               </div>
+            </div>
+          </div>
+
+          {/* Sidebar Booking Widget */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-xl shadow-lg sticky top-24 border border-gray-100">
+              <div className="mb-6">
+                <p className="text-sm text-gray-400 uppercase">Starting Price</p>
+                <div className="flex items-baseline gap-1">
+                   <span className="text-3xl font-serif font-bold text-[#111217]">{pkg.price}</span>
+                   <span className="text-sm text-gray-500">{pkg.priceUnit}</span>
+                </div>
+              </div>
+
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Check-in Date</label>
+                  <input type="date" className="w-full bg-[#F5F4F6] border-none rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-[#C9A34B]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Guests</label>
+                  <select className="w-full bg-[#F5F4F6] border-none rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-[#C9A34B]">
+                    <option>2 Adults</option>
+                    <option>2 Adults, 1 Child</option>
+                    <option>2 Adults, 2 Children</option>
+                    <option>Group (5+)</option>
+                  </select>
+                </div>
+                <div className="pt-4">
+                  <Button className="w-full shadow-xl">Proceed to Book</Button>
+                  <p className="text-xs text-center text-gray-400 mt-3 flex items-center justify-center gap-1">
+                    <ShieldCheck className="w-3 h-3" /> No charge until confirmation
+                  </p>
+                </div>
+              </form>
+
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <h5 className="font-bold text-sm mb-2">Need help?</h5>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-[#C9A34B]" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#111217]">+91 98765 43210</p>
+                    <p className="text-xs">24/7 Concierge</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  );
 
+  const ContactView = () => (
+    <div className="pt-24 pb-20 bg-white">
+      <div className="container mx-auto px-6">
+        <SectionHeader title="Contact & Support" subtitle="For reservations, groups, or partnerships — we’re ready to help." />
+        
+        <div className="grid lg:grid-cols-2 gap-12 mt-12">
+          <div className="bg-[#F5F4F6] p-8 rounded-2xl">
+            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                  <input type="text" placeholder="John Doe" className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                  <input type="email" placeholder="john@example.com" className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Type of Inquiry</label>
+                <select className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]">
+                  <option>Reservation Inquiry</option>
+                  <option>Group / Corporate</option>
+                  <option>Media / Partnership</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Message</label>
+                <textarea rows="4" className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]"></textarea>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="consent" className="text-[#C9A34B] focus:ring-[#C9A34B]" />
+                <label htmlFor="consent" className="text-sm text-gray-500">I consent to receiving communications regarding my inquiry.</label>
+              </div>
+              <Button className="w-full">Send Message</Button>
+            </form>
+          </div>
 
-    <script>
-        // Password for Voice Settings Panel
-        const VOICE_SETTINGS_PASSWORD = 'callex2025';
+          <div className="space-y-8 pt-4">
+            <div>
+              <h4 className="text-xl font-serif font-bold mb-4">Head Office</h4>
+              <p className="text-gray-600">The Grand Favourait<br/>12 Heritage Lane, Jaipur, Rajasthan, India</p>
+            </div>
+            <div>
+              <h4 className="text-xl font-serif font-bold mb-4">Direct Lines</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-[#C9A34B]" /> 
+                  <span>Reservations: +91 98765 43210</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-[#C9A34B]" /> 
+                  <span>Corporate: +91 90000 11122</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-[#C9A34B]" /> 
+                  <span>reservations@grandfavourait.com</span>
+                </li>
+              </ul>
+            </div>
+            <div className="p-6 bg-[#111217] text-white rounded-xl">
+              <h5 className="font-bold mb-2 text-[#C9A34B]">Office Hours</h5>
+              <p className="text-sm text-gray-400">Monday - Saturday: 09:00 - 18:00 IST</p>
+              <p className="text-sm text-gray-400">Sunday: Closed (Support active 24/7)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
-        document.addEventListener('DOMContentLoaded', (event) => {
+  // --- MODALS ---
+
+  const TripBuilderModal = () => {
+    if (!isTripBuilderOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl animate-fade-in">
+          <button 
+            onClick={() => setIsTripBuilderOpen(false)} 
+            className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="bg-[#111217] text-white p-8 text-center">
+            <h2 className="text-2xl font-serif font-bold mb-2">AI Trip Builder</h2>
+            <p className="text-gray-400 text-sm">Answer 3 quick questions to find your perfect escape.</p>
+          </div>
+
+          <div className="p-8">
+            {tripStep === 0 && (
+               <div className="space-y-6 text-center">
+                 <h3 className="text-lg font-bold text-[#111217]">What's your vibe?</h3>
+                 <div className="grid grid-cols-2 gap-4">
+                    {['Relaxation', 'Adventure', 'Romantic', 'Family Fun'].map(vibe => (
+                      <button 
+                        key={vibe}
+                        onClick={() => { setTripData({...tripData, mood: vibe}); setTripStep(1); }}
+                        className="p-4 border border-gray-200 rounded-xl hover:border-[#C9A34B] hover:bg-[#C9A34B]/5 transition-all"
+                      >
+                        {vibe}
+                      </button>
+                    ))}
+                 </div>
+               </div>
+            )}
+
+            {tripStep === 1 && (
+               <div className="space-y-6 text-center">
+                  <h3 className="text-lg font-bold text-[#111217]">How long are you staying?</h3>
+                  <div className="flex justify-center gap-4">
+                    <button onClick={runTripBuilder} className="px-6 py-3 border rounded-lg hover:bg-gray-50">Weekend</button>
+                    <button onClick={runTripBuilder} className="px-6 py-3 border rounded-lg hover:bg-gray-50">4-6 Days</button>
+                    <button onClick={runTripBuilder} className="px-6 py-3 border rounded-lg hover:bg-gray-50">1 Week+</button>
+                  </div>
+                  <div className="pt-4">
+                    <div className="animate-pulse text-[#C9A34B] text-sm font-bold">AI Engine Ready...</div>
+                  </div>
+               </div>
+            )}
+
+            {tripStep === 2 && tripResult && (
+              <div className="text-center">
+                <h3 className="text-xl font-serif font-bold text-[#111217] mb-4">We found a match!</h3>
+                <div className="bg-[#F5F4F6] p-4 rounded-xl mb-6 text-left flex items-center gap-4">
+                   <img src={tripResult.image} className="w-24 h-24 rounded-lg object-cover" alt="Result" />
+                   <div>
+                     <h4 className="font-bold">{tripResult.title.split("—")[0]}</h4>
+                     <p className="text-sm text-gray-500">{tripResult.duration} · {tripResult.price}</p>
+                     <div className="mt-2 text-xs bg-[#C9A34B] text-white inline-block px-2 py-1 rounded">
+                        98% Match for "{tripData.mood}"
+                     </div>
+                   </div>
+                </div>
+                <div className="flex gap-4 justify-center">
+                   <Button onClick={() => { setIsTripBuilderOpen(false); handleViewPackage(tripResult); }}>View Details</Button>
+                   <Button variant="outlineDark" onClick={() => setTripStep(0)}>Start Over</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // --- RENDER ---
+
+  return (
+    <div className="font-sans text-[#111217] antialiased selection:bg-[#C9A34B] selection:text-white">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap');
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Inter', sans-serif; }
+      `}</style>
+
+      {/* Navbar */}
+      <nav className={`fixed top-0 w-full z-40 transition-all duration-300 ${scrolled || activePage !== 'home' ? 'bg-[#111217] shadow-lg py-4' : 'bg-transparent py-6'}`}>
+        <div className="container mx-auto px-6 flex items-center justify-between">
+          <div 
+            className="text-2xl font-serif font-bold text-white cursor-pointer" 
+            onClick={() => handleNavigate('home')}
+          >
+            The Grand Favourait<span className="text-[#C9A34B]">.</span>
+          </div>
+
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white">
+            <button onClick={() => handleNavigate('home')} className="hover:text-[#C9A34B] transition-colors">Home</button>
+            <button onClick={() => document.getElementById('packages')?.scrollIntoView({behavior:'smooth'})} className="hover:text-[#C9A34B] transition-colors">Packages</button>
+            <button onClick={() => handleNavigate('contact')} className="hover:text-[#C9A34B] transition-colors">Contact</button>
+            <button 
+              className="px-5 py-2 rounded-full bg-white text-[#111217] hover:bg-[#C9A34B] hover:text-white transition-all"
+              onClick={() => { setIsTripBuilderOpen(true); setTripStep(0); }}
+            >
+              AI Trip Planner
+            </button>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMenuOpen && (
+          <div className="absolute top-full left-0 w-full bg-[#111217] border-t border-gray-800 p-6 md:hidden flex flex-col gap-4 text-white">
+            <button onClick={() => handleNavigate('home')}>Home</button>
+            <button onClick={() => { handleNavigate('home'); setTimeout(() => document.getElementById('packages')?.scrollIntoView(), 100); }}>Packages</button>
+            <button onClick={() => handleNavigate('contact')}>Contact</button>
+            <button onClick={() => { setIsTripBuilderOpen(true); setIsMenuOpen(false); }} className="text-[#C9A34B]">AI Trip Planner</button>
+          </div>
+        )}
+      </nav>
+
+      <main className="min-h-screen">
+        {activePage === 'home' && <HomeView />}
+        {activePage === 'detail' && selectedPackage && <DetailView pkg={selectedPackage} />}
+        {activePage === 'contact' && <ContactView />}
+      </main>
+
+      {/* Trip Builder Modal */}
+      <TripBuilderModal />
+
+      {/* Footer */}
+      <footer className="bg-[#111217] text-white pt-20 pb-8 border-t border-gray-800">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-12 mb-16">
+            <div className="col-span-1 md:col-span-1">
+               <h3 className="font-serif text-2xl font-bold mb-6">The Grand Favourait<span className="text-[#C9A34B]">.</span></h3>
+               <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                 Luxury stays, expertly curated experiences, and unforgettable memories — all in one seamless booking experience.
+               </p>
+               <div className="flex gap-4 text-gray-400">
+                 <Instagram className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
+                 <Facebook className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
+                 <Linkedin className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
+                 <Youtube className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
+               </div>
+            </div>
             
-            // Global state for tag editing
-            let currentEditId = null;
-            let currentTagTarget = null; // Either 'callData' or 'binData'
+            <div>
+              <h4 className="font-bold mb-6 text-[#C9A34B]">Discover</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li className="hover:text-white cursor-pointer">Destinations</li>
+                <li className="hover:text-white cursor-pointer">Wellness Collections</li>
+                <li className="hover:text-white cursor-pointer">Family Adventures</li>
+                <li className="hover:text-white cursor-pointer">Corporate Retreats</li>
+              </ul>
+            </div>
 
-            // --- DATA ---
-            const availableTags = [
-                'New_D2H', 'AgreeToSubmit', 'AUTOWRAP', 'Not_Interested', 'DNC', 'Call_Back',
-                'Same_Day_PTR', 'Wrong_Number', 'Service_Issue', 'NO_USER_AVAILABLE',
-                'Voice_Mail', 'PTRDICY', 'Recharge_Done', 'Language_Barrier', 'Technical_Support'
-            ];
+            <div>
+              <h4 className="font-bold mb-6 text-[#C9A34B]">Support</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li className="hover:text-white cursor-pointer">Manage Booking</li>
+                <li className="hover:text-white cursor-pointer">Contact Us</li>
+                <li className="hover:text-white cursor-pointer">Travel Insurance</li>
+                <li className="hover:text-white cursor-pointer">Gift Cards</li>
+              </ul>
+            </div>
 
-            // Main data store
-            let callData = [
-                { id: 1, customer: '+1 (555) 123-4567', agent: 'AI Agent', timestamp: new Date(Date.now() - 3600000), duration: '03:45', tags: ['New_D2H', 'AgreeToSubmit', 'AUTOWRAP'], sentiment: 'Positive', intent: 'New Dish Sale', summary: 'Customer agreed to submit details for a new D2H connection. Call was wrapped up successfully.' },
-                { id: 2, customer: '+1 (555) 987-6543', agent: 'Jane D.', timestamp: new Date(Date.now() - 7200000), duration: '02:15', tags: ['Not_Interested', 'DNC'], sentiment: 'Negative', intent: 'Not Willing to Recharge', summary: 'Customer is not willing to recharge, stated they are not interested and asked to be put on the DNC list. The tone was impatient.' },
-                { id: 3, customer: '+1 (555) 222-3333', agent: 'AI Agent', timestamp: new Date(Date.now() - 10800000), duration: '05:30', tags: ['Call_Back', 'Same_Day_PTR'], sentiment: 'Neutral', intent: 'Callback Request', summary: 'Customer was busy but requested a call back later today. Set for same-day PTR.' },
-                { id: 4, customer: '+1 (555) 444-5555', agent: 'AI Agent', timestamp: new Date(Date.now() - 86400000), duration: '01:05', tags: ['Wrong_Number'], sentiment: 'Neutral', intent: 'Wrong Number', summary: 'The person who answered stated it was a wrong number.' },
-                { id: 5, customer: '+1 (555) 666-7777', agent: 'John S.', timestamp: new Date(Date.now() - 172800000), duration: '07:20', tags: ['Service_Issue', 'AUTOWRAP'], sentiment: 'Negative', intent: 'Service Issue Complaint', summary: 'Customer called to complain about a service issue. Was upset about TV picture quality. Agent handled the complaint and created a service ticket.' },
-                { id: 6, customer: '+1 (555) 888-9999', agent: 'AI Agent', timestamp: new Date(Date.now() - 259200000), duration: '00:45', tags: ['NO_USER_AVAILABLE', 'Voice_Mail'], sentiment: 'Neutral', intent: 'Voicemail', summary: 'Call went to voicemail. No user was available to talk.' },
-            ];
+            <div>
+              <h4 className="font-bold mb-6 text-[#C9A34B]">Legal</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li className="hover:text-white cursor-pointer">Privacy Policy</li>
+                <li className="hover:text-white cursor-pointer">Terms of Service</li>
+                <li className="hover:text-white cursor-pointer">Cookie Policy</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+            <p>© 2025 The Grand Favourait Hotels & Resorts. All rights reserved.</p>
+            <div className="flex gap-6 mt-4 md:mt-0">
+              <span>Made with intention.</span>
+            </div>
+          </div>
+        </div>
+      </footer>
 
-            let binData = [
-                { id: 7, customer: '+1 (555) 111-0000', agent: 'AI Agent', timestamp: new Date(Date.now() - 518400000), duration: '04:10', tags: ['PTRDICY', 'Recharge_Done'], deletedOn: new Date(Date.now() - 86400000 * 2), sentiment: 'Positive', intent: 'Recharge Completed', summary: 'Customer confirmed recharge was done after initial reminder.' },
-                { id: 8, customer: '+1 (555) 222-1111', agent: 'Jane D.', timestamp: new Date(Date.now() - 604800000), duration: '01:50', tags: ['Language_Barrier'], deletedOn: new Date(Date.now() - 86400000 * 10), sentiment: 'Neutral', intent: 'Language Barrier', summary: 'Could not proceed with the call due to a language barrier.' }
-            ];
+      {/* Sticky Mobile Booking Bar (Visible only on Detail page) */}
+      {activePage === 'detail' && selectedPackage && (
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 md:hidden z-30 flex items-center justify-between shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
+           <div>
+             <p className="text-xs text-gray-500">Starting from</p>
+             <p className="font-bold text-[#111217]">{selectedPackage.price}</p>
+           </div>
+           <Button className="px-6 py-2 text-sm">Book Now</Button>
+        </div>
+      )}
+    </div>
+  );
+};
 
-            // Agent Mock Data
-            let agentData = [];
-            const agentNames = [
-                'Orion', 'Vega', 'Sirius', 'Altair', 'Deneb', 'Capella', 'Rigel', 'Procyon', 'Achernar', 'Betelgeuse',
-                'Spark', 'Vertex', 'Nova', 'Pulse', 'Apex', 'Core', 'Zenith', 'Echo', 'Helios', 'Cortex', 'Nexus',
-                'Unit', 'Alpha', 'Bravo', 'Charlie', 'Delta', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet', 'Kilo',
-                'Lima', 'Mike', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Victor', 'Whiskey', 'X-Ray',
-                'Yankee', 'Zulu', 'Astra', 'Byte'
-            ];
-            const statuses = ['Active', 'Calling', 'Learning', 'Maintenance'];
-            // UPDATED: Removed Sales, Billing, Retention and added General, Technical
-            const specialties = ['Support', 'General', 'Technical']; 
-
-            for (let i = 1; i <= 47; i++) {
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
-                agentData.push({
-                    id: `bot-${i}`,
-                    name: `${agentNames[i-1]}-${String(i).padStart(2, '0')}`,
-                    status: status,
-                    currentCalls: status === 'Calling' ? Math.floor(Math.random() * 5) + 1 : 0,
-                    avgHandleTime: `0${Math.floor(Math.random() * 4) + 2}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
-                    successRate: Math.floor(Math.random() * 20) + 75, // 75-95%
-                    specialty: specialties[Math.floor(Math.random() * specialties.length)]
-                });
-            }
-
-            // --- DOM Elements ---
-            const sidebarLinks = document.querySelectorAll('.nav-link');
-            const dashboardPage = document.getElementById('dashboard-page');
-            const recordingsPage = document.getElementById('recordings-page');
-            const binPage = document.getElementById('bin-page');
-            const agentsPage = document.getElementById('agents-page');
-            const voiceSettingsPage = document.getElementById('voice-settings-page'); // NEW
-            const recordingsTbody = document.getElementById('recordings-tbody');
-            const binTbody = document.getElementById('bin-tbody');
-            const liveCallChartCtx = document.getElementById('liveCallChart').getContext('2d');
-            
-            // Recordings Action Buttons
-            const binSelectedBtn = document.getElementById('bin-selected-btn'); 
-
-            // Bin Action Buttons
-            const restoreSelectedBtn = document.getElementById('restore-selected-btn');
-            const clearBinBtn = document.getElementById('clear-bin-btn');
-            const permDeleteSelectedBtn = document.getElementById('perm-delete-selected-btn');
-            
-            // Agent Page
-            const agentGrid = document.getElementById('agent-grid');
-            const agentStatCalling = document.getElementById('agent-stat-calling');
-            const agentStatLearning = document.getElementById('agent-stat-learning');
-            const agentStatMaintenance = document.getElementById('agent-stat-maintenance');
-
-            // Voice Settings Panel Elements (NEW)
-            const voiceAuthPanel = document.getElementById('voice-auth-panel');
-            const voicePasswordInput = document.getElementById('voice-password-input');
-            const voiceAuthenticateBtn = document.getElementById('voice-authenticate-btn');
-            const voiceAuthMessage = document.getElementById('voice-auth-message');
-            const voiceSettingsPanel = document.getElementById('voice-settings-panel');
-            
-            // Voice Settings Sliders (NEW)
-            const pitchSlider = document.getElementById('pitch-slider');
-            const pitchValue = document.getElementById('pitch-value');
-            const rateSlider = document.getElementById('rate-slider');
-            const rateValue = document.getElementById('rate-value');
-            const volumeSlider = document.getElementById('volume-slider');
-            const volumeValue = document.getElementById('volume-value');
-            const intensitySlider = document.getElementById('intensity-slider');
-            const intensityValue = document.getElementById('intensity-value');
-            const reverbSlider = document.getElementById('reverb-slider');
-            const reverbValue = document.getElementById('reverb-value');
-            const warmthSlider = document.getElementById('warmth-slider');
-            const warmthValue = document.getElementById('warmth-value');
-            const compressionSlider = document.getElementById('compression-slider');
-            const compressionValue = document.getElementById('compression-value');
-            
-            // Details Modal
-            const detailsModal = document.getElementById('details-modal');
-            const closeDetailsModalBtn = document.getElementById('close-details-modal-btn'); 
-            const editTagsBtn = document.getElementById('edit-tags-btn');
-            const detailId = document.getElementById('detail-id');
-            const detailCustomer = document.getElementById('detail-customer');
-            const detailAgent = document.getElementById('detail-agent');
-            const detailTimestamp = document.getElementById('detail-timestamp');
-            const detailDuration = document.getElementById('detail-duration');
-            const detailTags = document.getElementById('detail-tags');
-            const detailSentiment = document.getElementById('detail-sentiment');
-            const detailIntent = document.getElementById('detail-intent');
-            const detailSummary = document.getElementById('detail-summary');
-
-            // Tag Editor Modal
-            const tagEditorModal = document.getElementById('tag-editor-modal');
-            const closeTagEditorModalBtn = document.getElementById('close-tag-editor-modal-btn'); 
-            const tagInput = document.getElementById('tag-input');
-            const tagListContainer = document.getElementById('tag-list-container');
-            const saveTagsBtn = document.getElementById('save-tags-btn');
-
-            // Bin Confirmation Modal
-            const binConfirmModal = document.getElementById('bin-confirm-modal');
-            const closeBinConfirmModalBtn = document.getElementById('close-bin-confirm-modal-btn'); 
-            const confirmBinBtn = document.getElementById('confirm-bin-btn');
-
-            // Permanent Delete Modal
-            const permDeleteModal = document.getElementById('perm-delete-modal');
-            const closePermDeleteModalBtn = document.getElementById('close-perm-delete-modal-btn'); 
-            const confirmPermDeleteBtn = document.getElementById('confirm-perm-delete-btn');
-
-
-            // --- UTILITY FUNCTIONS ---
-
-            const showPage = (pageId) => {
-                document.querySelectorAll('.page-content').forEach(page => {
-                    page.classList.add('hidden');
-                });
-                const page = document.getElementById(pageId);
-                if (page) {
-                    page.classList.remove('hidden');
-                }
-            };
-
-            const openModal = (modalElement) => {
-                modalElement.classList.remove('hidden');
-            };
-
-            const closeModal = (modalElement) => {
-                modalElement.classList.add('hidden');
-            };
-
-            const formatTimestamp = (date) => {
-                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' - ' +
-                       date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            };
-
-            const timeSince = (date) => {
-                const seconds = Math.floor((new Date() - date) / 1000);
-                let interval = Math.floor(seconds / 31536000);
-                if (interval > 1) return interval + " years ago";
-                interval = Math.floor(seconds / 2592000);
-                if (interval > 1) return interval + " months ago";
-                interval = Math.floor(seconds / 86400);
-                if (interval > 1) return interval + " days ago";
-                interval = Math.floor(seconds / 3600);
-                if (interval > 1) return interval + " hours ago";
-                interval = Math.floor(seconds / 60);
-                if (interval > 1) return interval + " minutes ago";
-                const remaining = Math.floor(seconds) + " seconds ago";
-                return remaining;
-            };
-
-            const formatSentiment = (sentiment) => {
-                switch (sentiment) {
-                    case 'Positive':
-                        return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Positive</span>`;
-                    case 'Negative':
-                        return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Negative</span>`;
-                    case 'Neutral':
-                    default:
-                        return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Neutral</span>`;
-                }
-            };
-
-            const formatTag = (tag) => {
-                return `<span class="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-indigo-50 text-brand-primary">${tag}</span>`;
-            };
-
-            const formatAgentStatus = (status) => {
-                switch (status) {
-                    case 'Active':
-                        return `<span class="flex items-center text-sm text-gray-600"><svg class="w-2.5 h-2.5 mr-2 text-gray-400 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Active</span>`;
-                    case 'Calling':
-                        return `<span class="flex items-center text-sm text-green-600 font-medium"><svg class="w-2.5 h-2.5 mr-2 text-green-500 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Calling</span>`;
-                    case 'Learning':
-                        return `<span class="flex items-center text-sm text-blue-600"><svg class="w-2.5 h-2.5 mr-2 text-blue-500 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Learning</span>`;
-                    case 'Maintenance':
-                        return `<span class="flex items-center text-sm text-yellow-600"><svg class="w-2.5 h-2.5 mr-2 text-yellow-500 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>Maintenance</span>`;
-                    default:
-                        return `<span class="flex items-center text-sm text-gray-600"><svg class="w-2.5 h-2.5 mr-2 text-gray-400 fill-current" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>${status}</span>`;
-                }
-            };
-            
-            // Navigation Handler 
-            const handleNavClick = (e) => {
-                e.preventDefault();
-                const targetPage = e.currentTarget.getAttribute('data-page');
-                
-                // Special check for Voice Settings page
-                if (targetPage === 'voice-settings-page') {
-                    // Check if settings are unlocked
-                    if (voiceSettingsPanel && voiceSettingsPanel.classList.contains('hidden')) {
-                        // Show auth panel if locked
-                        voiceAuthPanel.classList.remove('hidden');
-                        voiceSettingsPanel.classList.add('hidden');
-                        voicePasswordInput.value = ''; // Clear password on new navigation
-                        voiceAuthMessage.classList.add('hidden');
-                    } else {
-                        // Settings are unlocked, show settings panel
-                        voiceAuthPanel.classList.add('hidden');
-                        voiceSettingsPanel.classList.remove('hidden');
-                    }
-                }
-
-                showPage(targetPage);
-                // Highlight active link
-                sidebarLinks.forEach(l => l.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                
-                // Rerender agents page when navigated to
-                if (targetPage === 'agents-page') {
-                    renderAgentsPage();
-                }
-            };
-
-            // --- DATA MANIPULATION FUNCTIONS ---
-
-            const findRecording = (id, target) => {
-                const data = target === 'bin' ? binData : callData;
-                return data.find(c => c.id === id);
-            };
-
-            const updateTagsInObject = (id, newTags, target) => {
-                const data = target === 'bin' ? binData : callData;
-                const recording = data.find(c => c.id === id);
-                if (recording) {
-                    recording.tags = newTags;
-                }
-            };
-
-            const binSelectedRecordings = () => {
-                const selectedIds = Array.from(document.querySelectorAll('#recordings-tbody input[type="checkbox"]:checked'))
-                    .map(checkbox => parseInt(checkbox.dataset.id))
-                    .filter(id => id);
-
-                if (selectedIds.length === 0) {
-                    closeModal(binConfirmModal);
-                    return;
-                }
-                
-                // Move records
-                callData = callData.filter(call => {
-                    if (selectedIds.includes(call.id)) {
-                        binData.push({ ...call, deletedOn: new Date() });
-                        return false; // Remove from callData
-                    }
-                    return true;
-                });
-                
-                closeModal(binConfirmModal);
-                renderRecordingsTable();
-                renderBinTable();
-            };
-            
-            const deleteSelectedRecordings = () => {
-                const selectedIds = Array.from(document.querySelectorAll('#bin-tbody input[type="checkbox"]:checked'))
-                    .map(checkbox => parseInt(checkbox.dataset.id))
-                    .filter(id => id);
-
-                if (selectedIds.length === 0) {
-                    closeModal(permDeleteModal);
-                    return;
-                }
-                
-                // Permanently delete
-                binData = binData.filter(call => !selectedIds.includes(call.id));
-                
-                closeModal(permDeleteModal);
-                renderBinTable();
-            };
-
-            const restoreSelectedRecordings = () => {
-                const selectedIds = Array.from(document.querySelectorAll('#bin-tbody input[type="checkbox"]:checked'))
-                    .map(checkbox => parseInt(checkbox.dataset.id))
-                    .filter(id => id);
-
-                if (selectedIds.length === 0) {
-                    return;
-                }
-                
-                // Restore records
-                binData = binData.filter(call => {
-                    if (selectedIds.includes(call.id)) {
-                        const { deletedOn, ...rest } = call;
-                        callData.push(rest);
-                        return false; // Remove from binData
-                    }
-                    return true;
-                });
-                
-                renderRecordingsTable();
-                renderBinTable();
-            };
-
-            const clearBin = () => {
-                if(binData.length === 0) return;
-                binData = [];
-                renderBinTable();
-            }
-
-            // --- TAG EDITOR FUNCTIONS ---
-
-            const openTagEditor = (id, target) => {
-                currentEditId = id;
-                currentTagTarget = target;
-                
-                const recording = findRecording(id, target);
-                if (!recording) return;
-
-                // Clear previous tags and populate
-                tagListContainer.innerHTML = '';
-                recording.tags.forEach(tag => renderEditableTag(tag));
-                
-                openModal(tagEditorModal);
-                tagInput.focus();
-            };
-            
-            const renderEditableTag = (tag) => {
-                const tagElement = document.createElement('span');
-                tagElement.className = 'flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-50 text-brand-primary cursor-pointer hover:bg-indigo-200 transition';
-                tagElement.textContent = tag;
-                
-                const closeIcon = document.createElement('button');
-                closeIcon.innerHTML = `<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
-                closeIcon.className = 'ml-1 p-0.5 text-brand-primary hover:text-indigo-800';
-                
-                closeIcon.onclick = (e) => {
-                    e.stopPropagation();
-                    tagListContainer.removeChild(tagElement);
-                };
-                
-                tagElement.appendChild(closeIcon);
-                tagListContainer.appendChild(tagElement);
-            };
-
-            const addTagFromInput = () => {
-                const newTag = tagInput.value.trim();
-                if (newTag) {
-                    const currentTags = Array.from(tagListContainer.querySelectorAll('span')).map(el => el.textContent.replace(/.\s*$/, "").trim());
-                    if (!currentTags.includes(newTag)) {
-                        renderEditableTag(newTag);
-                    }
-                    tagInput.value = '';
-                }
-            };
-            
-            const saveTags = () => {
-                if (currentEditId === null || currentTagTarget === null) {
-                    closeModal(tagEditorModal);
-                    return;
-                }
-                
-                const newTags = Array.from(tagListContainer.querySelectorAll('span')).map(el => {
-                    // Remove the text from the close button (x) which is appended after the tag name
-                    return el.textContent.replace(/.\s*$/, "").trim();
-                });
-                
-                updateTagsInObject(currentEditId, newTags, currentTagTarget);
-
-                // Re-render the tables to reflect changes
-                if (currentTagTarget === 'callData') {
-                    renderRecordingsTable();
-                } else {
-                    renderBinTable();
-                }
-                
-                closeModal(tagEditorModal);
-                currentEditId = null;
-                currentTagTarget = null;
-                
-                // Re-open details modal if it was open (optional, but good UX)
-                if (!detailsModal.classList.contains('hidden')) {
-                    const recording = findRecording(currentEditId, currentTagTarget);
-                    if (recording) showDetails(recording);
-                }
-            };
-
-            const populateTagDropdown = () => {
-                const datalist = document.getElementById('available-tags');
-                if (!datalist) return;
-                datalist.innerHTML = availableTags.map(tag => `<option value="${tag}">`).join('');
-            };
-
-            // --- RENDER FUNCTIONS ---
-            
-            const addTableButtonListeners = () => {
-                document.querySelectorAll('.play-btn').forEach(btn => {
-                    btn.onclick = (e) => {
-                        const id = parseInt(e.currentTarget.dataset.id);
-                        const target = e.currentTarget.closest('#recordings-page') ? 'callData' : 'bin';
-                        const call = findRecording(id, target);
-                        if (call) showDetails(call, target);
-                    };
-                });
-                
-                document.querySelectorAll('.edit-tag-btn').forEach(btn => {
-                    btn.onclick = (e) => {
-                        const id = parseInt(e.currentTarget.dataset.id);
-                        const target = e.currentTarget.closest('#recordings-page') ? 'callData' : 'bin';
-                        // Open details modal first to view current tags
-                        const call = findRecording(id, target);
-                        if (call) {
-                            showDetails(call, target);
-                            openTagEditor(id, target);
-                        }
-                    };
-                });
-            };
-
-            const renderRecordingsTable = () => {
-                recordingsTbody.innerHTML = '';
-                if (callData.length === 0) {
-                    recordingsTbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-500">No call recordings found.</td></tr>`;
-                    return;
-                }
-
-                callData.forEach(call => {
-                    const tagsHtml = call.tags.map(formatTag).join('');
-                    const row = `
-                        <tr>
-                            <td class="p-4 w-4">
-                                <input type="checkbox" data-id="${call.id}" class="record-checkbox rounded text-brand-primary focus:ring-brand-primary">
-                            </td>
-                            <td class="p-4 text-sm font-medium text-gray-800">#${call.id}</td>
-                            <td class="p-4 text-sm font-medium text-gray-800">${call.customer}</td>
-                            <td class="p-4 text-sm text-gray-600">${call.agent}</td>
-                            <td class="p-4 text-sm text-gray-600">${formatTimestamp(call.timestamp)}</td>
-                            <td class="p-4 text-sm text-gray-600">${call.duration}</td>
-                            <td class="p-4 text-sm">${formatSentiment(call.sentiment)}</td>
-                            <td class="p-4 flex flex-wrap gap-1">${tagsHtml}</td>
-                            <td class="p-4 text-sm space-x-2 whitespace-nowrap">
-                                <button class="play-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="View Details">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.5 4.5M12 20a8 8 0 100-16 8 8 0 000 16zM9 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                </button>
-                                <button class="edit-tag-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="Edit Tags">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M16 7h.01M7 16h.01M16 16h.01M16 12h.01M7 12h.01M12 7h.01M12 12h.01M12 16h.01M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"></path></svg>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    recordingsTbody.insertAdjacentHTML('beforeend', row);
-                });
-                
-                // Add event listeners after rows are created
-                addTableButtonListeners();
-            };
-            
-            const renderBinTable = () => {
-                binTbody.innerHTML = '';
-                if (binData.length === 0) {
-                    binTbody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-gray-500">The recycle bin is empty.</td></tr>`;
-                    return;
-                }
-
-                binData.forEach(call => {
-                    const row = `
-                        <tr>
-                            <td class="p-4 w-4">
-                                <input type="checkbox" data-id="${call.id}" class="bin-checkbox rounded text-brand-primary focus:ring-brand-primary">
-                            </td>
-                            <td class="p-4 text-sm font-medium text-gray-800">#${call.id}</td>
-                            <td class="p-4 text-sm font-medium text-gray-800">${call.customer}</td>
-                            <td class="p-4 text-sm text-gray-600">${timeSince(call.deletedOn)}</td>
-                            <td class="p-4 text-sm text-gray-600">${call.duration}</td>
-                            <td class="p-4 text-sm space-x-2 whitespace-nowrap">
-                                <button class="play-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="View Details">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.5 4.5M12 20a8 8 0 100-16 8 8 0 000 16zM9 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                </button>
-                                <button class="edit-tag-btn p-1 text-gray-400 hover:text-brand-primary" data-id="${call.id}" title="Edit Tags">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M16 7h.01M7 16h.01M16 16h.01M16 12h.01M7 12h.01M12 7h.01M12 12h.01M12 16h.01M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"></path></svg>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    binTbody.insertAdjacentHTML('beforeend', row);
-                });
-                
-                addTableButtonListeners();
-            };
-
-            const showDetails = (call) => {
-                detailId.textContent = `#${call.id}`;
-                detailCustomer.textContent = call.customer;
-                detailAgent.textContent = call.agent;
-                detailTimestamp.textContent = formatTimestamp(call.timestamp);
-                detailDuration.textContent = call.duration;
-                detailTags.innerHTML = call.tags.map(formatTag).join('');
-                
-                // Populate AI Analysis
-                detailSentiment.textContent = call.sentiment;
-                detailIntent.textContent = call.intent;
-                detailSummary.textContent = call.summary;
-
-                // Reset and apply sentiment color
-                detailSentiment.classList.remove('text-green-600', 'text-red-600', 'text-gray-600');
-                switch (call.sentiment) {
-                    case 'Positive':
-                        detailSentiment.classList.add('text-green-600');
-                        break;
-                    case 'Negative':
-                        detailSentiment.classList.add('text-red-600');
-                        break;
-                    default:
-                        detailSentiment.classList.add('text-gray-600');
-                }
-                
-                openModal(detailsModal);
-            };
-
-            const renderAgentsPage = () => {
-                if (!agentGrid) return;
-                agentGrid.innerHTML = '';
-                
-                let calling = 0;
-                let learning = 0;
-                let maintenance = 0;
-
-                agentData.forEach(agent => {
-                    // Update stats
-                    if (agent.status === 'Calling') calling++;
-                    if (agent.status === 'Learning') learning++;
-                    if (agent.status === 'Maintenance') maintenance++;
-
-                    const statusColor = agent.status === 'Calling' ? 'text-green-600' : 
-                                        agent.status === 'Learning' ? 'text-blue-600' :
-                                        agent.status === 'Maintenance' ? 'text-yellow-600' : 'text-gray-600';
-
-                    const card = `
-                        <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-lg font-semibold text-gray-800">${agent.name}</h4>
-                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-100 text-brand-primary">${agent.specialty}</span>
-                            </div>
-                            <div class="mb-4">
-                                ${formatAgentStatus(agent.status)}
-                            </div>
-                            <div class="space-y-3 text-sm border-t pt-3">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Current Load:</span>
-                                    <span class="font-bold ${statusColor}">${agent.currentCalls} Calls</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Avg. Handle Time:</span>
-                                    <span class="font-medium text-gray-800">${agent.avgHandleTime}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Success Rate:</span>
-                                    <span class="font-medium text-green-600">${agent.successRate}%</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    agentGrid.insertAdjacentHTML('beforeend', card);
-                });
-
-                // Update stat cards
-                if (agentStatCalling) agentStatCalling.textContent = calling;
-                if (agentStatLearning) agentStatLearning.textContent = learning;
-                if (agentStatMaintenance) agentStatMaintenance.textContent = maintenance;
-            };
-
-            // --- VOICE SETTINGS FUNCTIONS (NEW) ---
-
-            const authenticateVoicePanel = () => {
-                const enteredPassword = voicePasswordInput.value;
-                if (enteredPassword === VOICE_SETTINGS_PASSWORD) {
-                    voiceAuthPanel.classList.add('hidden');
-                    voiceSettingsPanel.classList.remove('hidden');
-                    voiceAuthMessage.classList.add('hidden');
-                } else {
-                    voiceAuthMessage.classList.remove('hidden');
-                    voicePasswordInput.value = '';
-                    voicePasswordInput.focus();
-                }
-            };
-            
-            const updateSliderValue = (slider, valueElement) => {
-                valueElement.textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? slider.step.split('.')[1].length : 0);
-            };
-
-            // --- CHART INITIALIZATION ---
-            const initLiveChart = () => {
-                if (!liveCallChartCtx) return;
-                new Chart(liveCallChartCtx.canvas, {
-                    type: 'line',
-                    data: {
-                        labels: ['09:00', '09:10', '09:20', '09:30', '09:40', '09:50', '10:00'],
-                        datasets: [{
-                            label: 'Calls per Minute',
-                            data: [15, 20, 18, 25, 30, 22, 28],
-                            borderColor: '#4f46e5',
-                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });
-            };
-
-            // --- EVENT LISTENERS ---
-
-            // Sidebar Navigation
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', handleNavClick);
-            });
-            
-            // Voice Settings Authentication (NEW)
-            if (voiceAuthenticateBtn) voiceAuthenticateBtn.addEventListener('click', authenticateVoicePanel);
-            if (voicePasswordInput) voicePasswordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    authenticateVoicePanel();
-                }
-            });
-
-            // Voice Settings Slider Handlers (NEW)
-            [
-                { slider: pitchSlider, value: pitchValue },
-                { slider: rateSlider, value: rateValue },
-                { slider: volumeSlider, value: volumeValue },
-                { slider: intensitySlider, value: intensityValue },
-                { slider: reverbSlider, value: reverbValue },
-                { slider: warmthSlider, value: warmthValue },
-                { slider: compressionSlider, value: compressionValue }
-            ].forEach(pair => {
-                if (pair.slider && pair.value) {
-                    pair.slider.addEventListener('input', () => updateSliderValue(pair.slider, pair.value));
-                }
-            });
-
-            // Modals Close Buttons
-            if(closeDetailsModalBtn) closeDetailsModalBtn.addEventListener('click', () => closeModal(detailsModal));
-            if(closeTagEditorModalBtn) closeTagEditorModalBtn.addEventListener('click', () => closeModal(tagEditorModal));
-            if(closeBinConfirmModalBtn) closeBinConfirmModalBtn.addEventListener('click', () => closeModal(binConfirmModal));
-            if(closePermDeleteModalBtn) closePermDeleteModalBtn.addEventListener('click', () => closeModal(permDeleteModal));
-
-            // Details Modal Actions
-            if(editTagsBtn) editTagsBtn.addEventListener('click', () => openTagEditor(currentEditId, currentTagTarget || 'callData'));
-
-            // Tag Editor Actions
-            if(tagInput) tagInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    addTagFromInput();
-                }
-            });
-            if(saveTagsBtn) saveTagsBtn.addEventListener('click', saveTags);
-            
-            // Recordings Table Actions
-            if(binSelectedBtn) binSelectedBtn.addEventListener('click', () => openModal(binConfirmModal));
-
-            // Bin Page Actions
-            if(restoreSelectedBtn) restoreSelectedBtn.addEventListener('click', restoreSelectedRecordings);
-            if(clearBinBtn) clearBinBtn.addEventListener('click', clearBin);
-            if(permDeleteSelectedBtn) permDeleteSelectedBtn.addEventListener('click', () => openModal(permDeleteModal));
-            
-            // Confirmation Modal Actions
-            if(confirmBinBtn) confirmBinBtn.addEventListener('click', binSelectedRecordings);
-            if(confirmPermDeleteBtn) confirmPermDeleteBtn.addEventListener('click', deleteSelectedRecordings);
-
-            // Init Function
-            const init = () => {
-                // Ensure initial IDs are set for tag editing context
-                currentEditId = callData.length > 0 ? callData[0].id : null;
-                currentTagTarget = 'callData';
-                
-                showPage('dashboard-page');
-                renderRecordingsTable();
-                renderBinTable();
-                renderAgentsPage();
-                populateTagDropdown();
-                initLiveChart();
-
-                // Initialize all slider displays
-                [
-                    { slider: pitchSlider, value: pitchValue },
-                    { slider: rateSlider, value: rateValue },
-                    { slider: volumeSlider, value: volumeValue },
-                    { slider: intensitySlider, value: intensityValue },
-                    { slider: reverbSlider, value: reverbValue },
-                    { slider: warmthSlider, value: warmthValue },
-                    { slider: compressionSlider, value: compressionValue }
-                ].forEach(pair => {
-                    if (pair.slider && pair.value) {
-                        updateSliderValue(pair.slider, pair.value);
-                    }
-                });
-            };
-            
-            init();
-
-        });
-    </script>
-</body>
-</html>
+export default App;
