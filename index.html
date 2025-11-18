@@ -1,786 +1,582 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Menu, X, MapPin, Calendar, Users, Star, ArrowRight, 
-  CheckCircle, Phone, Mail, Instagram, Facebook, Linkedin, 
-  Youtube, Globe, ChevronRight, Heart, Leaf, Clock, ShieldCheck 
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Grand Favourait Hotels & Resorts</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-// --- ASSETS & DATA ---
+    <!-- Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            charcoal: '#111217',
+                            gold: '#C9A34B',
+                            stone: '#F5F4F6',
+                            teal: '#6CA8A6'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-const BRAND_COLORS = {
-  charcoal: '#111217',
-  gold: '#C9A34B',
-  stone: '#F5F4F6',
-  teal: '#6CA8A6'
-};
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #111217;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+        }
+        .scroll-hidden::-webkit-scrollbar {
+            display: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-brand-stone selection:bg-brand-gold selection:text-white">
 
-const PACKAGES = [
-  {
-    id: 1,
-    title: "Luxury Escape — Palatial Coastal Retreat",
-    tagline: "Handpicked villas, private experiences.",
-    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
-    price: "₹49,999",
-    priceUnit: "/ person",
-    duration: "5 nights",
-    pax: "2 Adults",
-    rating: 4.9,
-    category: "Luxury",
-    inclusions: [
-      "Premium sea-view suite",
-      "Daily breakfast",
-      "Private sunset cruise",
-      "Airport transfers",
-      "One gourmet dining experience"
-    ],
-    itinerary: [
-      { day: 1, activity: "Arrival & Welcome Drinks at Sunset Lounge" },
-      { day: 2, activity: "Private Beach Cabana & Spa Session" },
-      { day: 3, activity: "Coastal Yacht Cruise" },
-      { day: 4, activity: "Gourmet Dining Experience" },
-      { day: 5, activity: "Departure with Souvenir Gift" }
-    ]
-  },
-  {
-    id: 2,
-    title: "Family Getaway — Theme & Comfort",
-    tagline: "Kid-friendly amenities, nanny-on-request.",
-    image: "https://images.unsplash.com/photo-1571896349842-6e5c48dc52a3?auto=format&fit=crop&w=800&q=80",
-    price: "₹24,999",
-    priceUnit: "/ family",
-    duration: "4 nights",
-    pax: "2 Adults, 2 Kids",
-    rating: 4.8,
-    category: "Family",
-    inclusions: [
-      "Family suite",
-      "Kids’ activity pass",
-      "Theme-park day",
-      "Daily breakfast",
-      "Shuttle service"
-    ],
-    itinerary: [
-      { day: 1, activity: "Check-in & Kids Club Orientation" },
-      { day: 2, activity: "Full Day Theme Park Access" },
-      { day: 3, activity: "Family Pool Party & BBQ" },
-      { day: 4, activity: "Breakfast & Departure" }
-    ]
-  },
-  {
-    id: 3,
-    title: "Romance Retreat — Boutique Honeymoon",
-    tagline: "Privacy-first experiences, sunset proposals.",
-    image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80",
-    price: "₹34,999",
-    priceUnit: "/ couple",
-    duration: "3 nights",
-    pax: "Couples",
-    rating: 5.0,
-    category: "Romantic",
-    inclusions: [
-      "Romantic suite setup",
-      "Candlelight dinner",
-      "Couple’s spa",
-      "Private picnic"
-    ],
-    itinerary: [
-      { day: 1, activity: "Welcome Champagne & Rose Petal Setup" },
-      { day: 2, activity: "Couples Massage & Private Beach Picnic" },
-      { day: 3, activity: "Candlelight Dinner under the Stars" }
-    ]
-  },
-  {
-    id: 4,
-    title: "Adventure Trails — Active Escape",
-    tagline: "Local guides, small-group safety-first.",
-    image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?auto=format&fit=crop&w=800&q=80",
-    price: "₹29,999",
-    priceUnit: "/ person",
-    duration: "6 nights",
-    pax: "Small Group",
-    rating: 4.7,
-    category: "Adventure",
-    inclusions: [
-      "Guided treks",
-      "Equipment rental",
-      "Local village visits",
-      "Camping night with chef",
-      "Transfers"
-    ],
-    itinerary: [
-      { day: 1, activity: "Base Camp Arrival & Briefing" },
-      { day: 2, activity: "Mountain Trek - Phase 1" },
-      { day: 3, activity: "Village Immersion & Culture Tour" },
-      { day: 4, activity: "River Rafting Excursion" },
-      { day: 5, activity: "Luxury Camping Night" },
-      { day: 6, activity: "Descent & Farewell Lunch" }
-    ]
-  },
-  {
-    id: 5,
-    title: "Corporate & MICE — Executive Retreat",
-    tagline: "Dedicated event manager, hybrid meeting tech.",
-    image: "https://images.unsplash.com/photo-1576085898323-218337e3e43c?auto=format&fit=crop&w=800&q=80",
-    price: "Custom",
-    priceUnit: "on enquiry",
-    duration: "Custom",
-    pax: "Groups 10+",
-    rating: 4.9,
-    category: "Corporate",
-    inclusions: [
-      "Conference halls & AV",
-      "Team-building activities",
-      "F&B packages",
-      "Accommodation blocks",
-      "Event manager"
-    ],
-    itinerary: [
-      { day: 1, activity: "Check-in & Welcome Cocktail" },
-      { day: 2, activity: "Conference Session AM / Team Building PM" },
-      { day: 3, activity: "Gala Dinner" }
-    ]
-  }
-];
-
-// --- COMPONENTS ---
-
-const Button = ({ children, variant = 'primary', className = '', onClick }) => {
-  const baseStyle = "px-6 py-3 rounded-full font-medium transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95";
-  
-  const variants = {
-    primary: `bg-[#C9A34B] text-white hover:bg-[#b08d3e] hover:shadow-lg`,
-    secondary: `bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#111217]`,
-    outlineDark: `bg-transparent border-2 border-[#111217] text-[#111217] hover:bg-[#111217] hover:text-white`,
-    ghost: `text-[#C9A34B] hover:text-[#b08d3e] underline-offset-4 hover:underline p-0`
-  };
-
-  return (
-    <button 
-      onClick={onClick}
-      className={`${baseStyle} ${variants[variant]} ${className}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-const SectionHeader = ({ title, subtitle, centered = true }) => (
-  <div className={`mb-12 ${centered ? 'text-center' : 'text-left'} max-w-4xl mx-auto`}>
-    <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#111217] mb-4">{title}</h2>
-    <p className="text-[#6CA8A6] text-lg font-light max-w-2xl mx-auto leading-relaxed">
-      {subtitle}
-    </p>
-    <div className={`h-1 w-20 bg-[#C9A34B] mt-6 ${centered ? 'mx-auto' : ''}`}></div>
-  </div>
-);
-
-// --- MAIN APP COMPONENT ---
-
-const App = () => {
-  const [activePage, setActivePage] = useState('home');
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isTripBuilderOpen, setIsTripBuilderOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  // Trip Builder State
-  const [tripStep, setTripStep] = useState(0);
-  const [tripData, setTripData] = useState({ mood: '', duration: '', budget: '' });
-  const [tripResult, setTripResult] = useState(null);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleNavigate = (page) => {
-    setActivePage(page);
-    setIsMenuOpen(false);
-    window.scrollTo(0, 0);
-  };
-
-  const handleViewPackage = (pkg) => {
-    setSelectedPackage(pkg);
-    setActivePage('detail');
-    window.scrollTo(0, 0);
-  };
-
-  const runTripBuilder = () => {
-    // Simulate AI processing
-    setTimeout(() => {
-      setTripResult(PACKAGES[Math.floor(Math.random() * 3)]); // Random pick for demo
-      setTripStep(2);
-    }, 1500);
-  };
-
-  // --- SUB-VIEWS ---
-
-  const HomeView = () => (
-    <>
-      {/* Hero Section */}
-      <header className="relative h-screen min-h-[600px] flex items-center text-white overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=80" 
-            alt="Luxury Hotel Skyline" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#111217]/90 via-[#111217]/40 to-transparent"></div>
-          {/* Animated particles hint */}
-          <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse"></div>
-        </div>
-
-        <div className="container mx-auto px-6 relative z-10 pt-20">
-          <div className="max-w-2xl">
-            <div className="inline-block px-3 py-1 mb-6 border border-[#C9A34B] rounded text-[#C9A34B] text-sm tracking-widest uppercase">
-              The Grand Favourait
-            </div>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold leading-tight mb-6">
-              Escape Ordinary.<br />
-              <span className="text-[#C9A34B]">Arrive Exceptional.</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 mb-10 font-light max-w-lg leading-relaxed">
-              Exclusive stays, tailor-made packages, and concierge-grade service across premium destinations.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={() => document.getElementById('packages').scrollIntoView({behavior: 'smooth'})}>
-                Explore Packages
-              </Button>
-              <Button variant="secondary" onClick={() => { setIsTripBuilderOpen(true); setTripStep(0); }}>
-                Plan My Trip (AI)
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Features / Intro */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-               <h3 className="text-[#C9A34B] font-bold tracking-widest uppercase mb-2">About The Grand Favourait</h3>
-               <h2 className="text-4xl font-serif font-bold text-[#111217] mb-6">Curated Journeys. <br/>Crafted Comfort.</h2>
-               <p className="text-gray-600 mb-6 leading-relaxed">
-                 We are a hospitality curator blending refined comfort with destination expertise. Each package is handcrafted to deliver authentic local experiences, seamless logistics, and uncompromising standards of service. 
-               </p>
-               <p className="text-gray-600 mb-8 leading-relaxed">
-                 We combine seasoned travel design with modern digital convenience — from AI-assisted itineraries to 24/7 concierge.
-               </p>
-               <div className="grid grid-cols-2 gap-6">
-                 <div className="flex items-start gap-3">
-                   <Star className="text-[#C9A34B] w-6 h-6 mt-1" />
-                   <div>
-                     <h4 className="font-bold text-[#111217]">5-Star Service</h4>
-                     <p className="text-sm text-gray-500">Concierge grade support.</p>
-                   </div>
-                 </div>
-                 <div className="flex items-start gap-3">
-                   <Globe className="text-[#C9A34B] w-6 h-6 mt-1" />
-                   <div>
-                     <h4 className="font-bold text-[#111217]">Local Experts</h4>
-                     <p className="text-sm text-gray-500">Authentic experiences.</p>
-                   </div>
-                 </div>
-               </div>
-            </div>
-            <div className="relative">
-              <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#C9A34B] rounded-2xl"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" 
-                alt="Concierge" 
-                className="rounded-2xl shadow-xl relative z-10 w-full"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Packages Grid */}
-      <section id="packages" className="py-20 bg-[#F5F4F6]">
-        <div className="container mx-auto px-6">
-          <SectionHeader 
-            title="Handpicked Collections" 
-            subtitle="Discover our most popular curated experiences, designed for memory-making." 
-          />
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {PACKAGES.map((pkg) => (
-              <div key={pkg.id} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={pkg.image} 
-                    alt={pkg.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-[#111217]">
-                    {pkg.category}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <Clock className="w-4 h-4" /> {pkg.duration}
-                    <span className="mx-1">·</span>
-                    <Users className="w-4 h-4" /> {pkg.pax}
-                  </div>
-                  <h3 className="text-xl font-serif font-bold text-[#111217] mb-2 group-hover:text-[#C9A34B] transition-colors">
-                    {pkg.title.split("—")[0]}
-                  </h3>
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">{pkg.tagline}</p>
-                  
-                  <div className="flex items-end justify-between mt-4 pt-4 border-t border-gray-100">
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider">Starting from</p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-lg font-bold text-[#111217]">{pkg.price}</span>
-                        <span className="text-xs text-gray-500">{pkg.priceUnit}</span>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => handleViewPackage(pkg)}
-                      className="w-10 h-10 rounded-full bg-[#F5F4F6] text-[#111217] flex items-center justify-center hover:bg-[#111217] hover:text-[#C9A34B] transition-colors"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Strip */}
-      <section className="py-16 bg-[#111217] text-white">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            {[
-              { icon: <ShieldCheck />, title: "Secure Booking", text: "Encrypted payments & instant confirmation." },
-              { icon: <Leaf />, title: "Sustainability", text: "Eco-certified partner hotels." },
-              { icon: <Heart />, title: "Curated Quality", text: "Every property personally vetted." },
-              { icon: <Phone />, title: "24/7 Support", text: "Always here when you need us." }
-            ].map((f, i) => (
-              <div key={i} className="p-4">
-                <div className="w-12 h-12 mx-auto mb-4 text-[#C9A34B] flex items-center justify-center bg-[#C9A34B]/10 rounded-full">
-                  {f.icon}
-                </div>
-                <h4 className="font-bold text-lg mb-2">{f.title}</h4>
-                <p className="text-gray-400 text-sm">{f.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </>
-  );
-
-  const DetailView = ({ pkg }) => (
-    <div className="bg-[#F5F4F6] min-h-screen pb-20 pt-20">
-      {/* Detail Hero */}
-      <div className="relative h-[60vh] w-full">
-        <img src={pkg.image} alt={pkg.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-black/40 flex items-end">
-          <div className="container mx-auto px-6 pb-12 text-white">
-             <button 
-                onClick={() => setActivePage('home')} 
-                className="mb-6 flex items-center gap-2 hover:text-[#C9A34B] transition-colors"
-             >
-               ← Back to collections
-             </button>
-             <div className="bg-[#C9A34B] text-xs font-bold px-3 py-1 inline-block rounded mb-4">
-                {pkg.category} Collection
-             </div>
-             <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">{pkg.title}</h1>
-             <div className="flex flex-wrap gap-6 text-sm md:text-base font-medium">
-                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#C9A34B]"/> {pkg.duration}</span>
-                <span className="flex items-center gap-2"><Users className="w-4 h-4 text-[#C9A34B]"/> {pkg.pax}</span>
-                <span className="flex items-center gap-2"><Star className="w-4 h-4 text-[#C9A34B]"/> {pkg.rating}/5.0 Rating</span>
-             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 -mt-10 relative z-10">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Overview */}
-            <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-serif font-bold text-[#111217] mb-4">Experience Overview</h3>
-              <p className="text-gray-600 leading-relaxed mb-6">{pkg.tagline} This exclusive package is designed for travelers seeking immersion without compromising on luxury. From the moment you arrive, every detail is managed by our concierge team.</p>
-              
-              <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
-                <CheckCircle className="text-[#6CA8A6] w-5 h-5" /> What's Included
-              </h4>
-              <ul className="grid md:grid-cols-2 gap-3">
-                {pkg.inclusions.map((inc, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-gray-600 text-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C9A34B] mt-2"></span>
-                    {inc}
-                  </li>
-                ))}
-              </ul>
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 py-6 bg-transparent text-white">
+        <div class="container mx-auto px-6 flex items-center justify-between">
+            <div class="text-2xl font-serif font-bold cursor-pointer" onclick="router.navigate('home')">
+                The Grand Favourait<span class="text-brand-gold">.</span>
             </div>
 
-            {/* Itinerary */}
-            <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-serif font-bold text-[#111217] mb-6">Day-by-Day Itinerary</h3>
-              <div className="space-y-6">
-                {pkg.itinerary.map((day, idx) => (
-                  <div key={idx} className="flex gap-4">
-                    <div className="flex-shrink-0 w-12 text-center">
-                       <span className="block text-xs text-gray-400 uppercase">Day</span>
-                       <span className="block text-xl font-bold text-[#C9A34B]">{day.day}</span>
-                    </div>
-                    <div className="pb-6 border-b border-gray-100 w-full last:border-0">
-                      <h4 className="font-bold text-[#111217]">{day.activity}</h4>
-                      <p className="text-sm text-gray-500 mt-1">Scheduled activities, meals, and transport included.</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <button onclick="router.navigate('home')" class="hover:text-brand-gold transition-colors">Home</button>
+                <button onclick="scrollToPackages()" class="hover:text-brand-gold transition-colors">Packages</button>
+                <button onclick="router.navigate('contact')" class="hover:text-brand-gold transition-colors">Contact</button>
+                <button onclick="tripBuilder.open()" class="px-5 py-2 rounded-full bg-white text-brand-charcoal hover:bg-brand-gold hover:text-white transition-all font-medium">
+                    AI Trip Planner
+                </button>
             </div>
 
-            {/* Map Placeholder */}
-            <div className="bg-white p-2 rounded-xl shadow-sm h-64 relative overflow-hidden group">
-               <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity" alt="Map" />
-               <div className="absolute inset-0 flex items-center justify-center">
-                 <button className="bg-white px-4 py-2 rounded-lg shadow-lg font-bold text-[#111217] flex items-center gap-2">
-                   <MapPin className="text-[#C9A34B] w-4 h-4"/> View on Map
-                 </button>
-               </div>
-            </div>
-          </div>
-
-          {/* Sidebar Booking Widget */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-xl shadow-lg sticky top-24 border border-gray-100">
-              <div className="mb-6">
-                <p className="text-sm text-gray-400 uppercase">Starting Price</p>
-                <div className="flex items-baseline gap-1">
-                   <span className="text-3xl font-serif font-bold text-[#111217]">{pkg.price}</span>
-                   <span className="text-sm text-gray-500">{pkg.priceUnit}</span>
-                </div>
-              </div>
-
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Check-in Date</label>
-                  <input type="date" className="w-full bg-[#F5F4F6] border-none rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-[#C9A34B]" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Guests</label>
-                  <select className="w-full bg-[#F5F4F6] border-none rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-[#C9A34B]">
-                    <option>2 Adults</option>
-                    <option>2 Adults, 1 Child</option>
-                    <option>2 Adults, 2 Children</option>
-                    <option>Group (5+)</option>
-                  </select>
-                </div>
-                <div className="pt-4">
-                  <Button className="w-full shadow-xl">Proceed to Book</Button>
-                  <p className="text-xs text-center text-gray-400 mt-3 flex items-center justify-center gap-1">
-                    <ShieldCheck className="w-3 h-3" /> No charge until confirmation
-                  </p>
-                </div>
-              </form>
-
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <h5 className="font-bold text-sm mb-2">Need help?</h5>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Phone className="w-4 h-4 text-[#C9A34B]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#111217]">+91 98765 43210</p>
-                    <p className="text-xs">24/7 Concierge</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const ContactView = () => (
-    <div className="pt-24 pb-20 bg-white">
-      <div className="container mx-auto px-6">
-        <SectionHeader title="Contact & Support" subtitle="For reservations, groups, or partnerships — we’re ready to help." />
-        
-        <div className="grid lg:grid-cols-2 gap-12 mt-12">
-          <div className="bg-[#F5F4F6] p-8 rounded-2xl">
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
-                  <input type="text" placeholder="John Doe" className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
-                  <input type="email" placeholder="john@example.com" className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Type of Inquiry</label>
-                <select className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]">
-                  <option>Reservation Inquiry</option>
-                  <option>Group / Corporate</option>
-                  <option>Media / Partnership</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Message</label>
-                <textarea rows="4" className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C9A34B]"></textarea>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="consent" className="text-[#C9A34B] focus:ring-[#C9A34B]" />
-                <label htmlFor="consent" className="text-sm text-gray-500">I consent to receiving communications regarding my inquiry.</label>
-              </div>
-              <Button className="w-full">Send Message</Button>
-            </form>
-          </div>
-
-          <div className="space-y-8 pt-4">
-            <div>
-              <h4 className="text-xl font-serif font-bold mb-4">Head Office</h4>
-              <p className="text-gray-600">The Grand Favourait<br/>12 Heritage Lane, Jaipur, Rajasthan, India</p>
-            </div>
-            <div>
-              <h4 className="text-xl font-serif font-bold mb-4">Direct Lines</h4>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-[#C9A34B]" /> 
-                  <span>Reservations: +91 98765 43210</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-[#C9A34B]" /> 
-                  <span>Corporate: +91 90000 11122</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-[#C9A34B]" /> 
-                  <span>reservations@grandfavourait.com</span>
-                </li>
-              </ul>
-            </div>
-            <div className="p-6 bg-[#111217] text-white rounded-xl">
-              <h5 className="font-bold mb-2 text-[#C9A34B]">Office Hours</h5>
-              <p className="text-sm text-gray-400">Monday - Saturday: 09:00 - 18:00 IST</p>
-              <p className="text-sm text-gray-400">Sunday: Closed (Support active 24/7)</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // --- MODALS ---
-
-  const TripBuilderModal = () => {
-    if (!isTripBuilderOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-        <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl animate-fade-in">
-          <button 
-            onClick={() => setIsTripBuilderOpen(false)} 
-            className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          
-          <div className="bg-[#111217] text-white p-8 text-center">
-            <h2 className="text-2xl font-serif font-bold mb-2">AI Trip Builder</h2>
-            <p className="text-gray-400 text-sm">Answer 3 quick questions to find your perfect escape.</p>
-          </div>
-
-          <div className="p-8">
-            {tripStep === 0 && (
-               <div className="space-y-6 text-center">
-                 <h3 className="text-lg font-bold text-[#111217]">What's your vibe?</h3>
-                 <div className="grid grid-cols-2 gap-4">
-                    {['Relaxation', 'Adventure', 'Romantic', 'Family Fun'].map(vibe => (
-                      <button 
-                        key={vibe}
-                        onClick={() => { setTripData({...tripData, mood: vibe}); setTripStep(1); }}
-                        className="p-4 border border-gray-200 rounded-xl hover:border-[#C9A34B] hover:bg-[#C9A34B]/5 transition-all"
-                      >
-                        {vibe}
-                      </button>
-                    ))}
-                 </div>
-               </div>
-            )}
-
-            {tripStep === 1 && (
-               <div className="space-y-6 text-center">
-                  <h3 className="text-lg font-bold text-[#111217]">How long are you staying?</h3>
-                  <div className="flex justify-center gap-4">
-                    <button onClick={runTripBuilder} className="px-6 py-3 border rounded-lg hover:bg-gray-50">Weekend</button>
-                    <button onClick={runTripBuilder} className="px-6 py-3 border rounded-lg hover:bg-gray-50">4-6 Days</button>
-                    <button onClick={runTripBuilder} className="px-6 py-3 border rounded-lg hover:bg-gray-50">1 Week+</button>
-                  </div>
-                  <div className="pt-4">
-                    <div className="animate-pulse text-[#C9A34B] text-sm font-bold">AI Engine Ready...</div>
-                  </div>
-               </div>
-            )}
-
-            {tripStep === 2 && tripResult && (
-              <div className="text-center">
-                <h3 className="text-xl font-serif font-bold text-[#111217] mb-4">We found a match!</h3>
-                <div className="bg-[#F5F4F6] p-4 rounded-xl mb-6 text-left flex items-center gap-4">
-                   <img src={tripResult.image} className="w-24 h-24 rounded-lg object-cover" alt="Result" />
-                   <div>
-                     <h4 className="font-bold">{tripResult.title.split("—")[0]}</h4>
-                     <p className="text-sm text-gray-500">{tripResult.duration} · {tripResult.price}</p>
-                     <div className="mt-2 text-xs bg-[#C9A34B] text-white inline-block px-2 py-1 rounded">
-                        98% Match for "{tripData.mood}"
-                     </div>
-                   </div>
-                </div>
-                <div className="flex gap-4 justify-center">
-                   <Button onClick={() => { setIsTripBuilderOpen(false); handleViewPackage(tripResult); }}>View Details</Button>
-                   <Button variant="outlineDark" onClick={() => setTripStep(0)}>Start Over</Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // --- RENDER ---
-
-  return (
-    <div className="font-sans text-[#111217] antialiased selection:bg-[#C9A34B] selection:text-white">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap');
-        .font-serif { font-family: 'Playfair Display', serif; }
-        .font-sans { font-family: 'Inter', sans-serif; }
-      `}</style>
-
-      {/* Navbar */}
-      <nav className={`fixed top-0 w-full z-40 transition-all duration-300 ${scrolled || activePage !== 'home' ? 'bg-[#111217] shadow-lg py-4' : 'bg-transparent py-6'}`}>
-        <div className="container mx-auto px-6 flex items-center justify-between">
-          <div 
-            className="text-2xl font-serif font-bold text-white cursor-pointer" 
-            onClick={() => handleNavigate('home')}
-          >
-            The Grand Favourait<span className="text-[#C9A34B]">.</span>
-          </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white">
-            <button onClick={() => handleNavigate('home')} className="hover:text-[#C9A34B] transition-colors">Home</button>
-            <button onClick={() => document.getElementById('packages')?.scrollIntoView({behavior:'smooth'})} className="hover:text-[#C9A34B] transition-colors">Packages</button>
-            <button onClick={() => handleNavigate('contact')} className="hover:text-[#C9A34B] transition-colors">Contact</button>
-            <button 
-              className="px-5 py-2 rounded-full bg-white text-[#111217] hover:bg-[#C9A34B] hover:text-white transition-all"
-              onClick={() => { setIsTripBuilderOpen(true); setTripStep(0); }}
-            >
-              AI Trip Planner
+            <!-- Mobile Toggle -->
+            <button class="md:hidden text-white" onclick="toggleMobileMenu()">
+                <i data-lucide="menu"></i>
             </button>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X /> : <Menu />}
-          </button>
         </div>
 
-        {/* Mobile Menu Dropdown */}
-        {isMenuOpen && (
-          <div className="absolute top-full left-0 w-full bg-[#111217] border-t border-gray-800 p-6 md:hidden flex flex-col gap-4 text-white">
-            <button onClick={() => handleNavigate('home')}>Home</button>
-            <button onClick={() => { handleNavigate('home'); setTimeout(() => document.getElementById('packages')?.scrollIntoView(), 100); }}>Packages</button>
-            <button onClick={() => handleNavigate('contact')}>Contact</button>
-            <button onClick={() => { setIsTripBuilderOpen(true); setIsMenuOpen(false); }} className="text-[#C9A34B]">AI Trip Planner</button>
-          </div>
-        )}
-      </nav>
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-brand-charcoal border-t border-gray-800 p-6 flex flex-col gap-4 text-white shadow-xl">
+            <button onclick="router.navigate('home')" class="text-left">Home</button>
+            <button onclick="scrollToPackages()" class="text-left">Packages</button>
+            <button onclick="router.navigate('contact')" class="text-left">Contact</button>
+            <button onclick="tripBuilder.open()" class="text-brand-gold text-left">AI Trip Planner</button>
+        </div>
+    </nav>
 
-      <main className="min-h-screen">
-        {activePage === 'home' && <HomeView />}
-        {activePage === 'detail' && selectedPackage && <DetailView pkg={selectedPackage} />}
-        {activePage === 'contact' && <ContactView />}
-      </main>
+    <!-- VIEWS CONTAINER -->
+    <main id="app-container" class="min-h-screen">
+        
+        <!-- HOME VIEW -->
+        <div id="view-home">
+            <!-- Hero -->
+            <header class="relative h-screen min-h-[600px] flex items-center text-white overflow-hidden">
+                <div class="absolute inset-0 z-0">
+                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=80" alt="Luxury Hotel" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#111217]/90 via-[#111217]/40 to-transparent"></div>
+                    <!-- Particles CSS trick -->
+                    <div class="absolute inset-0 opacity-30" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); animation: pulse 4s infinite;"></div>
+                </div>
 
-      {/* Trip Builder Modal */}
-      <TripBuilderModal />
+                <div class="container mx-auto px-6 relative z-10 pt-20">
+                    <div class="max-w-2xl fade-in">
+                        <div class="inline-block px-3 py-1 mb-6 border border-brand-gold rounded text-brand-gold text-sm tracking-widest uppercase">
+                            The Grand Favourait
+                        </div>
+                        <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
+                            Escape Ordinary.<br />
+                            <span class="text-brand-gold">Arrive Exceptional.</span>
+                        </h1>
+                        <p class="text-lg md:text-xl text-gray-200 mb-10 font-light max-w-lg leading-relaxed">
+                            Exclusive stays, tailor-made packages, and concierge-grade service across premium destinations.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="scrollToPackages()" class="px-8 py-4 bg-brand-gold text-white rounded-full font-medium hover:bg-[#b08d3e] transition-all shadow-lg">
+                                Explore Packages
+                            </button>
+                            <button onclick="tripBuilder.open()" class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-medium hover:bg-white hover:text-brand-charcoal transition-all">
+                                Plan My Trip (AI)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-      {/* Footer */}
-      <footer className="bg-[#111217] text-white pt-20 pb-8 border-t border-gray-800">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12 mb-16">
-            <div className="col-span-1 md:col-span-1">
-               <h3 className="font-serif text-2xl font-bold mb-6">The Grand Favourait<span className="text-[#C9A34B]">.</span></h3>
-               <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                 Luxury stays, expertly curated experiences, and unforgettable memories — all in one seamless booking experience.
-               </p>
-               <div className="flex gap-4 text-gray-400">
-                 <Instagram className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
-                 <Facebook className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
-                 <Linkedin className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
-                 <Youtube className="w-5 h-5 hover:text-[#C9A34B] cursor-pointer" />
-               </div>
+            <!-- About Section -->
+            <section class="py-20 bg-white">
+                <div class="container mx-auto px-6">
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <h3 class="text-brand-gold font-bold tracking-widest uppercase mb-2">About Us</h3>
+                            <h2 class="text-4xl font-bold text-brand-charcoal mb-6">Curated Journeys. <br/>Crafted Comfort.</h2>
+                            <p class="text-gray-600 mb-6 leading-relaxed">
+                                We are a hospitality curator blending refined comfort with destination expertise. Each package is handcrafted to deliver authentic local experiences, seamless logistics, and uncompromising standards of service.
+                            </p>
+                            <div class="grid grid-cols-2 gap-6 mt-8">
+                                <div class="flex items-start gap-3">
+                                    <i data-lucide="star" class="text-brand-gold w-6 h-6 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-brand-charcoal">5-Star Service</h4>
+                                        <p class="text-sm text-gray-500">Concierge grade.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i data-lucide="globe" class="text-brand-gold w-6 h-6 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-brand-charcoal">Local Experts</h4>
+                                        <p class="text-sm text-gray-500">Authentic experiences.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute -top-4 -left-4 w-full h-full border-2 border-brand-gold rounded-2xl"></div>
+                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" alt="Concierge" class="rounded-2xl shadow-xl relative z-10 w-full">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Packages Grid -->
+            <section id="packages-section" class="py-20 bg-brand-stone">
+                <div class="container mx-auto px-6">
+                    <div class="mb-12 text-center max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-brand-charcoal mb-4">Handpicked Collections</h2>
+                        <p class="text-brand-teal text-lg font-light">Discover our most popular curated experiences.</p>
+                        <div class="h-1 w-20 bg-brand-gold mt-6 mx-auto"></div>
+                    </div>
+
+                    <div id="packages-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Packages injected via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Footer Strip -->
+            <section class="py-16 bg-brand-charcoal text-white">
+                <div class="container mx-auto px-6">
+                    <div class="grid md:grid-cols-4 gap-8 text-center">
+                        <div class="p-4">
+                            <div class="w-12 h-12 mx-auto mb-4 text-brand-gold bg-brand-gold/10 rounded-full flex items-center justify-center"><i data-lucide="shield-check"></i></div>
+                            <h4 class="font-bold text-lg mb-2">Secure Booking</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="w-12 h-12 mx-auto mb-4 text-brand-gold bg-brand-gold/10 rounded-full flex items-center justify-center"><i data-lucide="leaf"></i></div>
+                            <h4 class="font-bold text-lg mb-2">Sustainability</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="w-12 h-12 mx-auto mb-4 text-brand-gold bg-brand-gold/10 rounded-full flex items-center justify-center"><i data-lucide="heart"></i></div>
+                            <h4 class="font-bold text-lg mb-2">Curated Quality</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="w-12 h-12 mx-auto mb-4 text-brand-gold bg-brand-gold/10 rounded-full flex items-center justify-center"><i data-lucide="phone"></i></div>
+                            <h4 class="font-bold text-lg mb-2">24/7 Support</h4>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- DETAIL VIEW -->
+        <div id="view-detail" class="hidden bg-brand-stone min-h-screen pb-20 pt-20">
+            <!-- Content injected via JS -->
+        </div>
+
+        <!-- CONTACT VIEW -->
+        <div id="view-contact" class="hidden pt-24 pb-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="mb-12 text-center max-w-4xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold text-brand-charcoal mb-4">Contact & Support</h2>
+                    <p class="text-brand-teal text-lg font-light">For reservations, groups, or partnerships.</p>
+                    <div class="h-1 w-20 bg-brand-gold mt-6 mx-auto"></div>
+                </div>
+                
+                <div class="grid lg:grid-cols-2 gap-12 mt-12">
+                    <div class="bg-brand-stone p-8 rounded-2xl">
+                        <form class="space-y-6" onsubmit="event.preventDefault(); alert('Message sent!');">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                                    <input type="text" class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-gold" placeholder="John Doe">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                                    <input type="email" class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-gold" placeholder="john@example.com">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Type of Inquiry</label>
+                                <select class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-gold">
+                                    <option>Reservation Inquiry</option>
+                                    <option>Group / Corporate</option>
+                                    <option>Media / Partnership</option>
+                                </select>
+                            </div>
+                            <textarea rows="4" class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-brand-gold" placeholder="How can we help?"></textarea>
+                            <button class="w-full py-3 bg-brand-gold text-white rounded-full font-medium hover:shadow-lg transition-all">Send Message</button>
+                        </form>
+                    </div>
+                    <div class="space-y-8 pt-4">
+                        <div>
+                            <h4 class="text-xl font-serif font-bold mb-4">Head Office</h4>
+                            <p class="text-gray-600">The Grand Favourait<br/>12 Heritage Lane, Jaipur, Rajasthan, India</p>
+                        </div>
+                        <div class="p-6 bg-brand-charcoal text-white rounded-xl">
+                            <h5 class="font-bold mb-2 text-brand-gold">Office Hours</h5>
+                            <p class="text-sm text-gray-400">Mon - Sat: 09:00 - 18:00 IST</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+    </main>
+
+    <!-- TRIP BUILDER MODAL -->
+    <div id="trip-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl transform scale-95 transition-transform duration-300" id="trip-modal-content">
+            <button onclick="tripBuilder.close()" class="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 z-10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
             
-            <div>
-              <h4 className="font-bold mb-6 text-[#C9A34B]">Discover</h4>
-              <ul className="space-y-3 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer">Destinations</li>
-                <li className="hover:text-white cursor-pointer">Wellness Collections</li>
-                <li className="hover:text-white cursor-pointer">Family Adventures</li>
-                <li className="hover:text-white cursor-pointer">Corporate Retreats</li>
-              </ul>
+            <div class="bg-brand-charcoal text-white p-8 text-center">
+                <h2 class="text-2xl font-serif font-bold mb-2">AI Trip Builder</h2>
+                <p class="text-gray-400 text-sm">Answer 3 quick questions to find your perfect escape.</p>
             </div>
 
-            <div>
-              <h4 className="font-bold mb-6 text-[#C9A34B]">Support</h4>
-              <ul className="space-y-3 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer">Manage Booking</li>
-                <li className="hover:text-white cursor-pointer">Contact Us</li>
-                <li className="hover:text-white cursor-pointer">Travel Insurance</li>
-                <li className="hover:text-white cursor-pointer">Gift Cards</li>
-              </ul>
+            <div class="p-8" id="trip-body">
+                <!-- Injected via JS -->
             </div>
-
-            <div>
-              <h4 className="font-bold mb-6 text-[#C9A34B]">Legal</h4>
-              <ul className="space-y-3 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer">Privacy Policy</li>
-                <li className="hover:text-white cursor-pointer">Terms of Service</li>
-                <li className="hover:text-white cursor-pointer">Cookie Policy</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-            <p>© 2025 The Grand Favourait Hotels & Resorts. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <span>Made with intention.</span>
-            </div>
-          </div>
         </div>
-      </footer>
-
-      {/* Sticky Mobile Booking Bar (Visible only on Detail page) */}
-      {activePage === 'detail' && selectedPackage && (
-        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 md:hidden z-30 flex items-center justify-between shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
-           <div>
-             <p className="text-xs text-gray-500">Starting from</p>
-             <p className="font-bold text-[#111217]">{selectedPackage.price}</p>
-           </div>
-           <Button className="px-6 py-2 text-sm">Book Now</Button>
-        </div>
-      )}
     </div>
-  );
-};
 
-export default App;
+    <!-- FOOTER -->
+    <footer class="bg-brand-charcoal text-white pt-20 pb-8 border-t border-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-12 mb-16">
+                <div>
+                    <h3 class="font-serif text-2xl font-bold mb-6">The Grand Favourait<span class="text-brand-gold">.</span></h3>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">Luxury stays, expertly curated experiences.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-brand-gold">Discover</h4>
+                    <ul class="space-y-3 text-sm text-gray-400"><li>Destinations</li><li>Wellness</li><li>Family</li></ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-brand-gold">Support</h4>
+                    <ul class="space-y-3 text-sm text-gray-400"><li>Manage Booking</li><li>Contact Us</li><li>Insurance</li></ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-brand-gold">Legal</h4>
+                    <ul class="space-y-3 text-sm text-gray-400"><li>Privacy Policy</li><li>Terms</li><li>Cookies</li></ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-xs text-gray-500">
+                <p>© 2025 The Grand Favourait Hotels & Resorts. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA ---
+        const packages = [
+            {
+                id: 1,
+                title: "Luxury Escape — Palatial Coastal Retreat",
+                tagline: "Handpicked villas, private experiences.",
+                image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
+                price: "₹49,999",
+                priceUnit: "/ person",
+                duration: "5 nights",
+                pax: "2 Adults",
+                rating: 4.9,
+                category: "Luxury",
+                inclusions: ["Premium sea-view suite", "Daily breakfast", "Private sunset cruise", "Airport transfers"],
+                itinerary: [{day: 1, act: "Arrival & Sunset Lounge"}, {day: 2, act: "Beach Cabana & Spa"}, {day: 3, act: "Yacht Cruise"}]
+            },
+            {
+                id: 2,
+                title: "Family Getaway — Theme & Comfort",
+                tagline: "Kid-friendly amenities, nanny-on-request.",
+                image: "https://images.unsplash.com/photo-1571896349842-6e5c48dc52a3?auto=format&fit=crop&w=800&q=80",
+                price: "₹24,999",
+                priceUnit: "/ family",
+                duration: "4 nights",
+                pax: "2 Adults, 2 Kids",
+                rating: 4.8,
+                category: "Family",
+                inclusions: ["Family suite", "Kids’ activity pass", "Theme-park day", "Shuttle service"],
+                itinerary: [{day: 1, act: "Kids Club Orientation"}, {day: 2, act: "Theme Park Access"}, {day: 3, act: "Family BBQ"}]
+            },
+            {
+                id: 3,
+                title: "Romance Retreat — Boutique Honeymoon",
+                tagline: "Privacy-first experiences, sunset proposals.",
+                image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80",
+                price: "₹34,999",
+                priceUnit: "/ couple",
+                duration: "3 nights",
+                pax: "Couples",
+                rating: 5.0,
+                category: "Romantic",
+                inclusions: ["Romantic suite setup", "Candlelight dinner", "Couple’s spa", "Private picnic"],
+                itinerary: [{day: 1, act: "Champagne Welcome"}, {day: 2, act: "Couples Massage"}, {day: 3, act: "Candlelight Dinner"}]
+            }
+        ];
+
+        // --- ROUTER & UI LOGIC ---
+        const router = {
+            current: 'home',
+            navigate: (page, data = null) => {
+                document.getElementById('view-home').classList.add('hidden');
+                document.getElementById('view-detail').classList.add('hidden');
+                document.getElementById('view-contact').classList.add('hidden');
+                
+                document.getElementById('mobile-menu').classList.add('hidden');
+
+                // Reset Nav Style
+                const nav = document.getElementById('navbar');
+                if(page === 'home') {
+                    nav.classList.add('text-white', 'bg-transparent');
+                    nav.classList.remove('bg-white', 'text-brand-charcoal', 'shadow-lg');
+                    document.getElementById('view-home').classList.remove('hidden');
+                } else {
+                    nav.classList.remove('text-white', 'bg-transparent');
+                    nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
+                    if(page === 'detail') {
+                        renderDetail(data);
+                        document.getElementById('view-detail').classList.remove('hidden');
+                    } else if(page === 'contact') {
+                        document.getElementById('view-contact').classList.remove('hidden');
+                    }
+                }
+                window.scrollTo(0,0);
+                lucide.createIcons();
+            }
+        };
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        function scrollToPackages() {
+            router.navigate('home');
+            setTimeout(() => {
+                document.getElementById('packages-section').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        // --- RENDER FUNCTIONS ---
+
+        function init() {
+            const grid = document.getElementById('packages-grid');
+            grid.innerHTML = packages.map(pkg => `
+                <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer" onclick="router.navigate('detail', ${pkg.id})">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="${pkg.image}" alt="${pkg.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-charcoal">
+                            ${pkg.category}
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                            <div class="flex items-center gap-1"><i data-lucide="clock" class="w-4 h-4"></i> ${pkg.duration}</div>
+                            <span class="mx-1">·</span>
+                            <div class="flex items-center gap-1"><i data-lucide="users" class="w-4 h-4"></i> ${pkg.pax}</div>
+                        </div>
+                        <h3 class="text-xl font-serif font-bold text-brand-charcoal mb-2 group-hover:text-brand-gold transition-colors">
+                            ${pkg.title.split("—")[0]}
+                        </h3>
+                        <p class="text-gray-500 text-sm mb-4 line-clamp-2">${pkg.tagline}</p>
+                        <div class="flex items-end justify-between mt-4 pt-4 border-t border-gray-100">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider">Starting from</p>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-lg font-bold text-brand-charcoal">${pkg.price}</span>
+                                    <span class="text-xs text-gray-500">${pkg.priceUnit}</span>
+                                </div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-brand-stone text-brand-charcoal flex items-center justify-center hover:bg-brand-charcoal hover:text-brand-gold transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderDetail(id) {
+            const pkg = packages.find(p => p.id === id);
+            if(!pkg) return;
+
+            const container = document.getElementById('view-detail');
+            container.innerHTML = `
+                <div class="relative h-[60vh] w-full">
+                    <img src="${pkg.image}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/40 flex items-end">
+                        <div class="container mx-auto px-6 pb-12 text-white">
+                            <button onclick="router.navigate('home')" class="mb-6 flex items-center gap-2 hover:text-brand-gold transition-colors">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to collections
+                            </button>
+                            <div class="bg-brand-gold text-xs font-bold px-3 py-1 inline-block rounded mb-4">${pkg.category} Collection</div>
+                            <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4">${pkg.title}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="container mx-auto px-6 -mt-10 relative z-10">
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 space-y-8">
+                            <div class="bg-white p-8 rounded-xl shadow-sm">
+                                <h3 class="text-2xl font-serif font-bold mb-4">Experience Overview</h3>
+                                <p class="text-gray-600 leading-relaxed mb-6">${pkg.tagline} A curated experience designed for memory making.</p>
+                                <h4 class="font-bold text-lg mb-3 flex items-center gap-2"><i data-lucide="check-circle" class="text-brand-teal w-5 h-5"></i> Inclusions</h4>
+                                <ul class="grid md:grid-cols-2 gap-3">${pkg.inclusions.map(i => `<li class="flex items-start gap-2 text-gray-600 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-brand-gold mt-2"></span>${i}</li>`).join('')}</ul>
+                            </div>
+                            <div class="bg-white p-8 rounded-xl shadow-sm">
+                                <h3 class="text-2xl font-serif font-bold mb-6">Itinerary</h3>
+                                <div class="space-y-6">
+                                    ${pkg.itinerary.map(d => `
+                                        <div class="flex gap-4">
+                                            <div class="flex-shrink-0 w-12 text-center"><span class="block text-xs text-gray-400 uppercase">Day</span><span class="block text-xl font-bold text-brand-gold">${d.day}</span></div>
+                                            <div class="pb-6 border-b border-gray-100 w-full last:border-0"><h4 class="font-bold text-brand-charcoal">${d.act}</h4><p class="text-sm text-gray-500 mt-1">Scheduled activity.</p></div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <div class="bg-white p-6 rounded-xl shadow-lg sticky top-24">
+                                <div class="mb-6"><p class="text-sm text-gray-400 uppercase">Starting Price</p><div class="flex items-baseline gap-1"><span class="text-3xl font-serif font-bold text-brand-charcoal">${pkg.price}</span></div></div>
+                                <button class="w-full py-3 bg-brand-gold text-white rounded-full font-medium hover:shadow-xl transition-all" onclick="alert('Booking engine would open here')">Proceed to Book</button>
+                                <p class="text-xs text-center text-gray-400 mt-3">No charge until confirmation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 md:hidden z-30 flex items-center justify-between shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
+                    <div><p class="text-xs text-gray-500">Starting from</p><p class="font-bold text-brand-charcoal">${pkg.price}</p></div>
+                    <button class="px-6 py-2 bg-brand-gold text-white rounded-full font-medium" onclick="alert('Booking...')">Book Now</button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // --- TRIP BUILDER LOGIC ---
+        const tripBuilder = {
+            step: 0,
+            data: {},
+            open: () => {
+                document.getElementById('trip-modal').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('trip-modal').classList.remove('opacity-0');
+                    document.getElementById('trip-modal-content').classList.remove('scale-95');
+                }, 10);
+                tripBuilder.renderStep0();
+            },
+            close: () => {
+                document.getElementById('trip-modal').classList.add('opacity-0');
+                document.getElementById('trip-modal-content').classList.add('scale-95');
+                setTimeout(() => {
+                    document.getElementById('trip-modal').classList.add('hidden');
+                    tripBuilder.step = 0;
+                }, 300);
+            },
+            renderStep0: () => {
+                document.getElementById('trip-body').innerHTML = `
+                    <div class="space-y-6 text-center fade-in">
+                        <h3 class="text-lg font-bold text-brand-charcoal">What's your vibe?</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            ${['Relaxation', 'Adventure', 'Romantic', 'Family Fun'].map(v => `
+                                <button onclick="tripBuilder.renderStep1('${v}')" class="p-4 border border-gray-200 rounded-xl hover:border-brand-gold hover:bg-brand-gold/5 transition-all font-medium text-gray-600 hover:text-brand-charcoal">${v}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+            renderStep1: (vibe) => {
+                document.getElementById('trip-body').innerHTML = `
+                     <div class="space-y-6 text-center fade-in">
+                        <h3 class="text-lg font-bold text-brand-charcoal">How long are you staying?</h3>
+                        <div class="flex justify-center gap-4 flex-wrap">
+                            <button onclick="tripBuilder.renderResult()" class="px-6 py-3 border rounded-lg hover:bg-gray-50">Weekend</button>
+                            <button onclick="tripBuilder.renderResult()" class="px-6 py-3 border rounded-lg hover:bg-gray-50">4-6 Days</button>
+                            <button onclick="tripBuilder.renderResult()" class="px-6 py-3 border rounded-lg hover:bg-gray-50">1 Week+</button>
+                        </div>
+                     </div>
+                `;
+            },
+            renderResult: () => {
+                document.getElementById('trip-body').innerHTML = `<div class="animate-pulse text-brand-gold text-center font-bold">AI Engine Processing...</div>`;
+                setTimeout(() => {
+                    const pkg = packages[Math.floor(Math.random() * packages.length)];
+                    document.getElementById('trip-body').innerHTML = `
+                        <div class="text-center fade-in">
+                            <h3 class="text-xl font-serif font-bold text-brand-charcoal mb-4">We found a match!</h3>
+                            <div class="bg-brand-stone p-4 rounded-xl mb-6 text-left flex items-center gap-4">
+                                <img src="${pkg.image}" class="w-24 h-24 rounded-lg object-cover">
+                                <div>
+                                    <h4 class="font-bold">${pkg.title.split("—")[0]}</h4>
+                                    <p class="text-sm text-gray-500">${pkg.duration} · ${pkg.price}</p>
+                                    <div class="mt-2 text-xs bg-brand-gold text-white inline-block px-2 py-1 rounded">98% Match</div>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 justify-center">
+                                <button onclick="tripBuilder.close(); router.navigate('detail', ${pkg.id})" class="px-6 py-2 bg-brand-gold text-white rounded-full">View Details</button>
+                                <button onclick="tripBuilder.renderStep0()" class="px-6 py-2 border border-gray-300 rounded-full">Start Over</button>
+                            </div>
+                        </div>
+                    `;
+                }, 1500);
+            }
+        };
+
+        // Scroll Listener for Navbar
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (router.current === 'home') {
+                if (window.scrollY > 50) {
+                    nav.classList.remove('bg-transparent', 'text-white');
+                    nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
+                } else {
+                    nav.classList.add('bg-transparent', 'text-white');
+                    nav.classList.remove('bg-white', 'text-brand-charcoal', 'shadow-lg');
+                }
+            }
+        });
+
+        // Init
+        init();
+    </script>
+</body>
+</html>
