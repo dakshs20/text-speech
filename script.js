@@ -67,9 +67,8 @@ const router = {
             nav.classList.add('text-white', 'bg-transparent');
             document.getElementById('view-home').classList.remove('hidden');
         } else if (isAuthPage) {
-            // Hide navbar on admin pages if desired, or keep simple styling
-            nav.classList.add('hidden'); // Let's hide navbar for admin login focus
-            if(page === 'admin-dashboard') nav.classList.remove('hidden'); // Show on dashboard
+            nav.classList.add('hidden');
+            if(page === 'admin-dashboard') nav.classList.remove('hidden'); 
             
             // Render Admin View
             if (page === 'admin-login') {
@@ -85,7 +84,6 @@ const router = {
                 dataManager.renderAdminList();
             }
         } else {
-            // Detail / Contact
             nav.classList.remove('text-white', 'bg-transparent', 'hidden');
             nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
 
@@ -136,31 +134,49 @@ const dataManager = {
     addPackage: (e) => {
         e.preventDefault();
         
-        const newPkg = {
-            id: Date.now(), // Unique ID
-            title: document.getElementById('pkg-title').value,
-            tagline: document.getElementById('pkg-tagline').value,
-            price: document.getElementById('pkg-price').value,
-            priceUnit: document.getElementById('pkg-unit').value,
-            duration: document.getElementById('pkg-duration').value,
-            category: document.getElementById('pkg-cat').value,
-            image: document.getElementById('pkg-img').value,
-            pax: "2 Adults", // Default for demo
-            inclusions: ["Accommodation", "Breakfast", "Transfers"], // Defaults
-            itinerary: [{day: 1, act: "Check-in"}, {day: 2, act: "Leisure"}] // Defaults
+        // 1. Get the File
+        const fileInput = document.getElementById('pkg-img');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please upload an image.");
+            return;
+        }
+
+        // 2. Read the file as Base64
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            const imageBase64 = event.target.result;
+
+            // 3. Create Package Object
+            const newPkg = {
+                id: Date.now(), 
+                title: document.getElementById('pkg-title').value,
+                tagline: document.getElementById('pkg-tagline').value,
+                price: document.getElementById('pkg-price').value,
+                priceUnit: document.getElementById('pkg-unit').value,
+                duration: document.getElementById('pkg-duration').value,
+                category: document.getElementById('pkg-cat').value,
+                image: imageBase64, // Store the base64 string
+                pax: "2 Adults", 
+                inclusions: ["Accommodation", "Breakfast", "Transfers"],
+                itinerary: [{day: 1, act: "Check-in"}, {day: 2, act: "Leisure"}]
+            };
+
+            // 4. Save
+            appData.push(newPkg);
+            localStorage.setItem('tgf_packages', JSON.stringify(appData));
+
+            // 5. Refresh UI
+            alert('Package Published Successfully!');
+            e.target.reset(); // Clear form
+            dataManager.renderAdminList();
+            renderGrid(); 
         };
 
-        // Add to Array
-        appData.push(newPkg);
-        
-        // Save to LocalStorage
-        localStorage.setItem('tgf_packages', JSON.stringify(appData));
-
-        // Refresh Views
-        alert('Package Published Successfully!');
-        e.target.reset();
-        dataManager.renderAdminList();
-        renderGrid(); // Update home grid
+        // Trigger the read
+        reader.readAsDataURL(file);
     },
 
     deletePackage: (id) => {
