@@ -41,7 +41,7 @@ const DEFAULT_PACKAGES = [
     }
 ];
 
-// Load Data from LocalStorage or Use Default
+// Load Data from LocalStorage
 let appData = JSON.parse(localStorage.getItem('tgf_packages'));
 if (!appData || appData.length === 0) {
     appData = DEFAULT_PACKAGES;
@@ -82,6 +82,7 @@ const router = {
                 nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
                 document.getElementById('view-admin-dashboard').classList.remove('hidden');
                 dataManager.renderAdminList();
+                offerManager.renderAdminForm(); // Init the offer form state
             }
         } else {
             nav.classList.remove('text-white', 'bg-transparent', 'hidden');
@@ -129,6 +130,53 @@ const adminAuth = {
     }
 };
 
+// --- OFFER MANAGER ---
+const offerManager = {
+    data: JSON.parse(localStorage.getItem('tgf_offer')) || { active: false, text: '', code: '' },
+
+    saveOffer: (e) => {
+        e.preventDefault();
+        const text = document.getElementById('offer-text-input').value;
+        const code = document.getElementById('offer-code-input').value;
+        const active = document.getElementById('offer-active-input').checked;
+
+        offerManager.data = { text, code, active };
+        localStorage.setItem('tgf_offer', JSON.stringify(offerManager.data));
+        
+        alert('Offer Updated! It is now ' + (active ? 'Live' : 'Hidden'));
+        offerManager.renderBar();
+    },
+
+    renderAdminForm: () => {
+        document.getElementById('offer-text-input').value = offerManager.data.text || '';
+        document.getElementById('offer-code-input').value = offerManager.data.code || '';
+        document.getElementById('offer-active-input').checked = offerManager.data.active;
+    },
+
+    renderBar: () => {
+        const bar = document.getElementById('top-offer-bar');
+        const nav = document.getElementById('navbar');
+        
+        if (offerManager.data.active && offerManager.data.text) {
+            document.getElementById('offer-display-text').innerText = offerManager.data.text;
+            
+            const codeEl = document.getElementById('offer-display-code');
+            if(offerManager.data.code) {
+                codeEl.innerText = offerManager.data.code;
+                codeEl.classList.remove('hidden');
+            } else {
+                codeEl.classList.add('hidden');
+            }
+
+            bar.classList.remove('hidden');
+            nav.classList.add('offer-active'); // Push navbar down
+        } else {
+            bar.classList.add('hidden');
+            nav.classList.remove('offer-active'); // Reset navbar
+        }
+    }
+};
+
 // --- DATA MANAGER (Admin Actions) ---
 const dataManager = {
     addPackage: (e) => {
@@ -150,16 +198,10 @@ const dataManager = {
             const imageBase64 = event.target.result;
 
             // 3. Process New Inputs
-            
-            // Price Formatting (Auto add ₹ and commas)
             const rawPrice = document.getElementById('pkg-price').value;
             const formattedPrice = '₹' + new Intl.NumberFormat('en-IN').format(rawPrice);
-
-            // Inclusions Processing (Comma separated -> Array)
             const inclusionsRaw = document.getElementById('pkg-inclusions').value;
             const inclusionsList = inclusionsRaw.split(',').map(item => item.trim()).filter(i => i);
-
-            // Itinerary Processing (New line -> Array of Objects)
             const itineraryRaw = document.getElementById('pkg-itinerary').value;
             const itineraryList = itineraryRaw.split('\n').map((line, index) => ({
                 day: index + 1,
@@ -174,7 +216,7 @@ const dataManager = {
                 price: formattedPrice,
                 priceUnit: document.getElementById('pkg-unit').value,
                 duration: document.getElementById('pkg-duration').value,
-                pax: document.getElementById('pkg-pax').value, // New Pax Field
+                pax: document.getElementById('pkg-pax').value,
                 category: document.getElementById('pkg-cat').value,
                 image: imageBase64, 
                 inclusions: inclusionsList,
@@ -192,7 +234,6 @@ const dataManager = {
             renderGrid(); 
         };
 
-        // Trigger the read
         reader.readAsDataURL(file);
     },
 
@@ -422,4 +463,5 @@ window.addEventListener('scroll', () => {
 
 // INITIALIZE
 renderGrid();
+offerManager.renderBar(); // Check active offer on load
 lucide.createIcons();
