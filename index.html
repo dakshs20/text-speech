@@ -281,7 +281,7 @@
                 <div class="grid lg:grid-cols-3 gap-8">
                     <!-- Add Package Form -->
                     <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-xl shadow-sm sticky top-24">
+                        <div class="bg-white p-6 rounded-xl shadow-sm sticky top-24 max-h-[90vh] overflow-y-auto">
                             <h3 class="font-bold text-xl mb-6 text-brand-charcoal border-b pb-4">Add New Package</h3>
                             <form onsubmit="dataManager.addPackage(event)" class="space-y-4">
                                 <div>
@@ -292,36 +292,59 @@
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Tagline</label>
                                     <input type="text" id="pkg-tagline" required class="form-input text-sm" placeholder="Short description">
                                 </div>
+                                
+                                <!-- Updated Price and Pax Row -->
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Price</label>
-                                        <input type="text" id="pkg-price" required class="form-input text-sm" placeholder="₹25,000">
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Price (₹)</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2.5 text-gray-500">₹</span>
+                                            <input type="number" id="pkg-price" required class="form-input text-sm pl-7" placeholder="25000">
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Unit</label>
                                         <input type="text" id="pkg-unit" required class="form-input text-sm" placeholder="/ couple">
                                     </div>
                                 </div>
+
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Duration</label>
                                         <input type="text" id="pkg-duration" required class="form-input text-sm" placeholder="3 nights">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
-                                        <select id="pkg-cat" class="form-input text-sm">
-                                            <option>Luxury</option>
-                                            <option>Family</option>
-                                            <option>Romantic</option>
-                                            <option>Adventure</option>
-                                        </select>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Pax</label>
+                                        <input type="text" id="pkg-pax" required class="form-input text-sm" placeholder="2 Adults">
                                     </div>
                                 </div>
+
                                 <div>
-                                    <!-- UPDATED: File Input -->
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
+                                    <select id="pkg-cat" class="form-input text-sm">
+                                        <option>Luxury</option>
+                                        <option>Family</option>
+                                        <option>Romantic</option>
+                                        <option>Adventure</option>
+                                    </select>
+                                </div>
+
+                                <!-- NEW: Inclusions -->
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Inclusions (Comma Separated)</label>
+                                    <textarea id="pkg-inclusions" required class="form-input text-sm" rows="2" placeholder="Breakfast, Wifi, Airport Transfer"></textarea>
+                                </div>
+
+                                <!-- NEW: Itinerary -->
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Itinerary (One activity per line)</label>
+                                    <textarea id="pkg-itinerary" required class="form-input text-sm" rows="4" placeholder="Arrival and Welcome Drinks&#10;City Tour and Lunch&#10;Departure"></textarea>
+                                    <p class="text-[10px] text-gray-400 mt-1">Line 1 = Day 1, Line 2 = Day 2, etc.</p>
+                                </div>
+
+                                <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Upload Image</label>
                                     <input type="file" id="pkg-img" required accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-gold file:text-white hover:file:bg-yellow-600 cursor-pointer">
-                                    <p class="text-xs text-gray-400 mt-1">Max size 1MB recommended.</p>
                                 </div>
                                 <button type="submit" class="w-full py-3 bg-brand-green text-white bg-green-600 rounded-lg font-bold hover:bg-green-700 transition-colors mt-4">
                                     Publish Live
