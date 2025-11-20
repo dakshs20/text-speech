@@ -288,7 +288,7 @@
                     <!-- Left Column: Forms -->
                     <div class="lg:col-span-1 space-y-8">
                         
-                        <!-- NEW: Manage Offer Form -->
+                        <!-- Manage Offer Form -->
                         <div class="bg-brand-charcoal text-white p-6 rounded-xl shadow-lg border border-gray-700">
                             <div class="flex items-center justify-between mb-4 border-b border-gray-600 pb-2">
                                 <h3 class="font-bold text-lg text-brand-gold">Site-Wide Offer</h3>
@@ -357,15 +357,33 @@
                                         <option>Adventure</option>
                                     </select>
                                 </div>
+
+                                <!-- NEW FIELDS -->
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Destinations (Comma Separated)</label>
+                                    <input type="text" id="pkg-destinations" required class="form-input text-sm" placeholder="Paris, Rome, Venice">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Accommodations (Comma Separated)</label>
+                                    <textarea id="pkg-accommodations" required class="form-input text-sm" rows="2" placeholder="Hotel Hilton (4 Star), Seaside Resort"></textarea>
+                                </div>
+
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Inclusions (Comma Separated)</label>
                                     <textarea id="pkg-inclusions" required class="form-input text-sm" rows="2" placeholder="Breakfast, Wifi, Airport Transfer"></textarea>
                                 </div>
+                                
+                                <!-- ITINERARY BUILDER -->
                                 <div>
-                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Itinerary (One activity per line)</label>
-                                    <textarea id="pkg-itinerary" required class="form-input text-sm" rows="4" placeholder="Arrival&#10;City Tour&#10;Departure"></textarea>
-                                    <p class="text-[10px] text-gray-400 mt-1">Line 1 = Day 1, etc.</p>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Itinerary</label>
+                                    <div id="itinerary-builder-container" class="space-y-3 mb-2">
+                                        <!-- Itinerary items injected here -->
+                                    </div>
+                                    <button type="button" onclick="dataManager.addItineraryDay()" class="text-xs bg-brand-charcoal text-white px-3 py-1 rounded hover:bg-black">
+                                        + Add Day
+                                    </button>
                                 </div>
+
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Upload Image</label>
                                     <input type="file" id="pkg-img" required accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-gold file:text-white hover:file:bg-yellow-600 cursor-pointer">
