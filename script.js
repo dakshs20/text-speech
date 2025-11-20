@@ -10,8 +10,13 @@ const DEFAULT_PACKAGES = [
         duration: "5 nights",
         pax: "2 Adults",
         category: "Luxury",
+        destinations: ["Goa", "South Goa"],
+        accommodations: ["Taj Exotica (5 Star)", "Private Villa"],
         inclusions: ["Premium sea-view suite", "Daily breakfast", "Private sunset cruise"],
-        itinerary: [{day: 1, act: "Arrival & Sunset Lounge"}, {day: 2, act: "Beach Cabana"}]
+        itinerary: [
+            {day: 1, title: "Arrival", desc: "Arrival & Welcome Drinks at Sunset Lounge. Check in to your private villa."}, 
+            {day: 2, title: "Relaxation", desc: "Full day access to Beach Cabana with private butler service."}
+        ]
     },
     {
         id: 2,
@@ -23,21 +28,13 @@ const DEFAULT_PACKAGES = [
         duration: "4 nights",
         pax: "2 Adults, 2 Kids",
         category: "Family",
+        destinations: ["Dubai", "Yas Island"],
+        accommodations: ["Atlantis The Palm", "Yas Viceroy"],
         inclusions: ["Family suite", "Kids’ activity pass", "Theme-park day"],
-        itinerary: [{day: 1, act: "Kids Club Orientation"}, {day: 2, act: "Theme Park Access"}]
-    },
-    {
-        id: 3,
-        title: "Romance Retreat — Boutique Honeymoon",
-        tagline: "Privacy-first experiences, sunset proposals.",
-        image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80",
-        price: "₹34,999",
-        priceUnit: "/ couple",
-        duration: "3 nights",
-        pax: "Couples",
-        category: "Romantic",
-        inclusions: ["Romantic suite setup", "Candlelight dinner", "Couple’s spa"],
-        itinerary: [{day: 1, act: "Champagne Welcome"}, {day: 2, act: "Couples Massage"}]
+        itinerary: [
+            {day: 1, title: "Welcome", desc: "Kids Club Orientation and Welcome Ice Cream."}, 
+            {day: 2, title: "Adventure", desc: "Full Day Access to Theme Park with Fast Pass."}
+        ]
     }
 ];
 
@@ -82,7 +79,11 @@ const router = {
                 nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
                 document.getElementById('view-admin-dashboard').classList.remove('hidden');
                 dataManager.renderAdminList();
-                offerManager.renderAdminForm(); // Init the offer form state
+                offerManager.renderAdminForm();
+                
+                // Reset Itinerary Builder for new entry
+                document.getElementById('itinerary-builder-container').innerHTML = '';
+                dataManager.addItineraryDay(); // Add 1 empty day by default
             }
         } else {
             nav.classList.remove('text-white', 'bg-transparent', 'hidden');
@@ -112,11 +113,8 @@ const adminAuth = {
         if (id === '12345' && pass === '12345') {
             adminAuth.isAuthenticated = true;
             errorMsg.classList.add('hidden');
-            
-            // Show Logout buttons
             document.getElementById('nav-logout-btn').classList.remove('hidden');
             document.getElementById('mobile-logout-btn').classList.remove('hidden');
-            
             router.navigate('admin-dashboard');
         } else {
             errorMsg.classList.remove('hidden');
@@ -142,8 +140,7 @@ const offerManager = {
 
         offerManager.data = { text, code, active };
         localStorage.setItem('tgf_offer', JSON.stringify(offerManager.data));
-        
-        alert('Offer Updated! It is now ' + (active ? 'Live' : 'Hidden'));
+        alert('Offer Updated!');
         offerManager.renderBar();
     },
 
@@ -156,10 +153,8 @@ const offerManager = {
     renderBar: () => {
         const bar = document.getElementById('top-offer-bar');
         const nav = document.getElementById('navbar');
-        
         if (offerManager.data.active && offerManager.data.text) {
             document.getElementById('offer-display-text').innerText = offerManager.data.text;
-            
             const codeEl = document.getElementById('offer-display-code');
             if(offerManager.data.code) {
                 codeEl.innerText = offerManager.data.code;
@@ -167,22 +162,40 @@ const offerManager = {
             } else {
                 codeEl.classList.add('hidden');
             }
-
             bar.classList.remove('hidden');
-            nav.classList.add('offer-active'); // Push navbar down
+            nav.classList.add('offer-active');
         } else {
             bar.classList.add('hidden');
-            nav.classList.remove('offer-active'); // Reset navbar
+            nav.classList.remove('offer-active');
         }
     }
 };
 
 // --- DATA MANAGER (Admin Actions) ---
 const dataManager = {
+    itineraryCount: 0,
+
+    addItineraryDay: () => {
+        dataManager.itineraryCount++;
+        const container = document.getElementById('itinerary-builder-container');
+        const dayId = dataManager.itineraryCount;
+        
+        const dayHtml = `
+            <div class="p-3 border border-gray-200 rounded bg-gray-50" id="day-row-${dayId}">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase text-brand-gold">Day ${dayId}</span>
+                    ${dayId > 1 ? `<button type="button" onclick="document.getElementById('day-row-${dayId}').remove()" class="text-red-500 text-xs hover:underline">Remove</button>` : ''}
+                </div>
+                <input type="text" class="w-full p-2 mb-2 text-sm border rounded" placeholder="Title (e.g. Arrival)" name="day-title-${dayId}">
+                <textarea class="w-full p-2 text-sm border rounded" rows="2" placeholder="Detailed description of activities..." name="day-desc-${dayId}"></textarea>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', dayHtml);
+    },
+
     addPackage: (e) => {
         e.preventDefault();
         
-        // 1. Get the File
         const fileInput = document.getElementById('pkg-img');
         const file = fileInput.files[0];
 
@@ -191,24 +204,45 @@ const dataManager = {
             return;
         }
 
-        // 2. Read the file as Base64
         const reader = new FileReader();
 
         reader.onload = function(event) {
             const imageBase64 = event.target.result;
 
-            // 3. Process New Inputs
             const rawPrice = document.getElementById('pkg-price').value;
             const formattedPrice = '₹' + new Intl.NumberFormat('en-IN').format(rawPrice);
+            
             const inclusionsRaw = document.getElementById('pkg-inclusions').value;
             const inclusionsList = inclusionsRaw.split(',').map(item => item.trim()).filter(i => i);
-            const itineraryRaw = document.getElementById('pkg-itinerary').value;
-            const itineraryList = itineraryRaw.split('\n').map((line, index) => ({
-                day: index + 1,
-                act: line.trim()
-            })).filter(i => i.act);
+            
+            const destinationsRaw = document.getElementById('pkg-destinations').value;
+            const destinationsList = destinationsRaw.split(',').map(item => item.trim()).filter(i => i);
 
-            // Create Package Object
+            const accommodationsRaw = document.getElementById('pkg-accommodations').value;
+            const accommodationsList = accommodationsRaw.split(',').map(item => item.trim()).filter(i => i);
+
+            // Parse Itinerary from Dynamic Inputs
+            const itineraryList = [];
+            const container = document.getElementById('itinerary-builder-container');
+            const dayRows = container.querySelectorAll('div[id^="day-row-"]');
+            
+            dayRows.forEach((row, index) => {
+                const titleInput = row.querySelector('input');
+                const descInput = row.querySelector('textarea');
+                if(titleInput.value && descInput.value) {
+                    itineraryList.push({
+                        day: index + 1,
+                        title: titleInput.value,
+                        desc: descInput.value
+                    });
+                }
+            });
+
+            if(itineraryList.length === 0) {
+                alert("Please add at least one itinerary day.");
+                return;
+            }
+
             const newPkg = {
                 id: Date.now(), 
                 title: document.getElementById('pkg-title').value,
@@ -220,16 +254,20 @@ const dataManager = {
                 category: document.getElementById('pkg-cat').value,
                 image: imageBase64, 
                 inclusions: inclusionsList,
+                destinations: destinationsList,
+                accommodations: accommodationsList,
                 itinerary: itineraryList
             };
 
-            // 4. Save
             appData.push(newPkg);
             localStorage.setItem('tgf_packages', JSON.stringify(appData));
 
-            // 5. Refresh UI
             alert('Package Published Successfully!');
-            e.target.reset(); 
+            e.target.reset();
+            document.getElementById('itinerary-builder-container').innerHTML = '';
+            dataManager.itineraryCount = 0;
+            dataManager.addItineraryDay(); // Reset to 1 day
+            
             dataManager.renderAdminList();
             renderGrid(); 
         };
@@ -340,19 +378,48 @@ function renderDetail(id) {
         <div class="container mx-auto px-6 -mt-10 relative z-10">
             <div class="grid lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-8">
+                    
+                    <!-- Overview Block -->
                     <div class="bg-white p-8 rounded-xl shadow-sm">
                         <h3 class="text-2xl font-serif font-bold mb-4">Experience Overview</h3>
                         <p class="text-gray-600 leading-relaxed mb-6">${pkg.tagline} A curated experience designed for memory making.</p>
+                        
+                        <!-- Destinations Section -->
+                        ${pkg.destinations && pkg.destinations.length > 0 ? `
+                        <div class="mb-6">
+                            <h4 class="font-bold text-lg mb-3 flex items-center gap-2"><i data-lucide="map" class="text-brand-teal w-5 h-5"></i> Destinations Covered</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${pkg.destinations.map(d => `<span class="px-3 py-1 bg-blue-50 text-blue-800 rounded-full text-sm font-medium">${d}</span>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Accommodations Section -->
+                        ${pkg.accommodations && pkg.accommodations.length > 0 ? `
+                        <div class="mb-6">
+                            <h4 class="font-bold text-lg mb-3 flex items-center gap-2"><i data-lucide="home" class="text-brand-teal w-5 h-5"></i> Stays & Accommodations</h4>
+                            <ul class="grid md:grid-cols-2 gap-3">
+                                ${pkg.accommodations.map(acc => `<li class="flex items-start gap-2 text-gray-600 text-sm"><i data-lucide="bed" class="w-4 h-4 text-brand-gold mt-0.5"></i> ${acc}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
                         <h4 class="font-bold text-lg mb-3 flex items-center gap-2"><i data-lucide="check-circle" class="text-brand-teal w-5 h-5"></i> Inclusions</h4>
                         <ul class="grid md:grid-cols-2 gap-3">${pkg.inclusions.map(i => `<li class="flex items-start gap-2 text-gray-600 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-brand-gold mt-2"></span>${i}</li>`).join('')}</ul>
                     </div>
+                    
+                    <!-- Enhanced Itinerary -->
                     <div class="bg-white p-8 rounded-xl shadow-sm">
                         <h3 class="text-2xl font-serif font-bold mb-6">Itinerary</h3>
-                        <div class="space-y-6">
+                        <div class="space-y-0">
                             ${pkg.itinerary.map(d => `
-                                <div class="flex gap-4">
-                                    <div class="flex-shrink-0 w-12 text-center"><span class="block text-xs text-gray-400 uppercase">Day</span><span class="block text-xl font-bold text-brand-gold">${d.day}</span></div>
-                                    <div class="pb-6 border-b border-gray-100 w-full last:border-0"><h4 class="font-bold text-brand-charcoal">${d.act}</h4><p class="text-sm text-gray-500 mt-1">Scheduled activity.</p></div>
+                                <div class="itinerary-timeline-item">
+                                    <div class="itinerary-timeline-marker"></div>
+                                    <div class="mb-1">
+                                        <span class="text-xs font-bold uppercase text-brand-gold tracking-wide">Day ${d.day}</span>
+                                    </div>
+                                    <h4 class="font-bold text-brand-charcoal text-lg mb-2">${d.title || d.act}</h4>
+                                    <p class="text-gray-600 text-sm leading-relaxed">${d.desc || 'Activities as scheduled.'}</p>
                                 </div>
                             `).join('')}
                         </div>
