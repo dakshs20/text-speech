@@ -43,6 +43,12 @@
 </head>
 <body class="bg-brand-stone selection:bg-brand-gold selection:text-white font-sans text-brand-charcoal antialiased">
 
+    <!-- TOP OFFER BAR (Hidden by default) -->
+    <div id="top-offer-bar" class="fixed top-0 w-full z-[60] bg-brand-gold text-white text-center py-2 px-4 text-sm font-medium hidden shadow-md transition-transform duration-300">
+        <span id="offer-display-text"></span>
+        <span id="offer-display-code" class="ml-3 bg-white/20 px-2 py-0.5 rounded border border-white/30 font-bold tracking-wider"></span>
+    </div>
+
     <!-- Navbar -->
     <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 py-6 bg-transparent text-white">
         <div class="container mx-auto px-6 flex items-center justify-between">
@@ -279,9 +285,36 @@
                 </div>
 
                 <div class="grid lg:grid-cols-3 gap-8">
-                    <!-- Add Package Form -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-xl shadow-sm sticky top-24 max-h-[90vh] overflow-y-auto">
+                    <!-- Left Column: Forms -->
+                    <div class="lg:col-span-1 space-y-8">
+                        
+                        <!-- NEW: Manage Offer Form -->
+                        <div class="bg-brand-charcoal text-white p-6 rounded-xl shadow-lg border border-gray-700">
+                            <div class="flex items-center justify-between mb-4 border-b border-gray-600 pb-2">
+                                <h3 class="font-bold text-lg text-brand-gold">Site-Wide Offer</h3>
+                                <i data-lucide="megaphone" class="text-brand-gold w-5 h-5"></i>
+                            </div>
+                            <form onsubmit="offerManager.saveOffer(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Offer Message</label>
+                                    <input type="text" id="offer-text-input" class="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white focus:border-brand-gold outline-none" placeholder="Summer Sale: 20% Off!">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Coupon Code</label>
+                                    <input type="text" id="offer-code-input" class="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white focus:border-brand-gold outline-none" placeholder="SUMMER20">
+                                </div>
+                                <div class="flex items-center gap-2 pt-2">
+                                    <input type="checkbox" id="offer-active-input" class="w-4 h-4 accent-brand-gold">
+                                    <label for="offer-active-input" class="text-sm text-gray-300">Active (Show on Top)</label>
+                                </div>
+                                <button type="submit" class="w-full py-2 bg-brand-gold text-white rounded font-bold hover:bg-yellow-600 transition-colors text-sm">
+                                    Update Offer
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Add Package Form -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm max-h-[80vh] overflow-y-auto">
                             <h3 class="font-bold text-xl mb-6 text-brand-charcoal border-b pb-4">Add New Package</h3>
                             <form onsubmit="dataManager.addPackage(event)" class="space-y-4">
                                 <div>
@@ -292,8 +325,6 @@
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Tagline</label>
                                     <input type="text" id="pkg-tagline" required class="form-input text-sm" placeholder="Short description">
                                 </div>
-                                
-                                <!-- Updated Price and Pax Row -->
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Price (₹)</label>
@@ -307,7 +338,6 @@
                                         <input type="text" id="pkg-unit" required class="form-input text-sm" placeholder="/ couple">
                                     </div>
                                 </div>
-
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Duration</label>
@@ -318,7 +348,6 @@
                                         <input type="text" id="pkg-pax" required class="form-input text-sm" placeholder="2 Adults">
                                     </div>
                                 </div>
-
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
                                     <select id="pkg-cat" class="form-input text-sm">
@@ -328,20 +357,15 @@
                                         <option>Adventure</option>
                                     </select>
                                 </div>
-
-                                <!-- NEW: Inclusions -->
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Inclusions (Comma Separated)</label>
                                     <textarea id="pkg-inclusions" required class="form-input text-sm" rows="2" placeholder="Breakfast, Wifi, Airport Transfer"></textarea>
                                 </div>
-
-                                <!-- NEW: Itinerary -->
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Itinerary (One activity per line)</label>
-                                    <textarea id="pkg-itinerary" required class="form-input text-sm" rows="4" placeholder="Arrival and Welcome Drinks&#10;City Tour and Lunch&#10;Departure"></textarea>
-                                    <p class="text-[10px] text-gray-400 mt-1">Line 1 = Day 1, Line 2 = Day 2, etc.</p>
+                                    <textarea id="pkg-itinerary" required class="form-input text-sm" rows="4" placeholder="Arrival&#10;City Tour&#10;Departure"></textarea>
+                                    <p class="text-[10px] text-gray-400 mt-1">Line 1 = Day 1, etc.</p>
                                 </div>
-
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Upload Image</label>
                                     <input type="file" id="pkg-img" required accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-gold file:text-white hover:file:bg-yellow-600 cursor-pointer">
@@ -353,7 +377,7 @@
                         </div>
                     </div>
 
-                    <!-- Package List -->
+                    <!-- Right Column: List -->
                     <div class="lg:col-span-2">
                         <div class="bg-white p-6 rounded-xl shadow-sm">
                             <h3 class="font-bold text-xl mb-6 text-brand-charcoal border-b pb-4">Active Packages</h3>
