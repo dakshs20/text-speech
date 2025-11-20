@@ -149,19 +149,36 @@ const dataManager = {
         reader.onload = function(event) {
             const imageBase64 = event.target.result;
 
-            // 3. Create Package Object
+            // 3. Process New Inputs
+            
+            // Price Formatting (Auto add ₹ and commas)
+            const rawPrice = document.getElementById('pkg-price').value;
+            const formattedPrice = '₹' + new Intl.NumberFormat('en-IN').format(rawPrice);
+
+            // Inclusions Processing (Comma separated -> Array)
+            const inclusionsRaw = document.getElementById('pkg-inclusions').value;
+            const inclusionsList = inclusionsRaw.split(',').map(item => item.trim()).filter(i => i);
+
+            // Itinerary Processing (New line -> Array of Objects)
+            const itineraryRaw = document.getElementById('pkg-itinerary').value;
+            const itineraryList = itineraryRaw.split('\n').map((line, index) => ({
+                day: index + 1,
+                act: line.trim()
+            })).filter(i => i.act);
+
+            // Create Package Object
             const newPkg = {
                 id: Date.now(), 
                 title: document.getElementById('pkg-title').value,
                 tagline: document.getElementById('pkg-tagline').value,
-                price: document.getElementById('pkg-price').value,
+                price: formattedPrice,
                 priceUnit: document.getElementById('pkg-unit').value,
                 duration: document.getElementById('pkg-duration').value,
+                pax: document.getElementById('pkg-pax').value, // New Pax Field
                 category: document.getElementById('pkg-cat').value,
-                image: imageBase64, // Store the base64 string
-                pax: "2 Adults", 
-                inclusions: ["Accommodation", "Breakfast", "Transfers"],
-                itinerary: [{day: 1, act: "Check-in"}, {day: 2, act: "Leisure"}]
+                image: imageBase64, 
+                inclusions: inclusionsList,
+                itinerary: itineraryList
             };
 
             // 4. Save
@@ -170,7 +187,7 @@ const dataManager = {
 
             // 5. Refresh UI
             alert('Package Published Successfully!');
-            e.target.reset(); // Clear form
+            e.target.reset(); 
             dataManager.renderAdminList();
             renderGrid(); 
         };
