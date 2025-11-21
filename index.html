@@ -457,14 +457,24 @@
                                         <input type="text" id="pkg-pax" required class="form-input text-sm" placeholder="2 Adults">
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
-                                    <select id="pkg-cat" class="form-input text-sm">
-                                        <option>Luxury</option>
-                                        <option>Family</option>
-                                        <option>Romantic</option>
-                                        <option>Adventure</option>
-                                    </select>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
+                                        <select id="pkg-cat" class="form-input text-sm">
+                                            <option>Luxury</option>
+                                            <option>Family</option>
+                                            <option>Romantic</option>
+                                            <option>Adventure</option>
+                                        </select>
+                                    </div>
+                                    <!-- NEW: Sub-Category Select -->
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Location Type</label>
+                                        <select id="pkg-subcategory" class="form-input text-sm">
+                                            <option>National</option>
+                                            <option>International</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <!-- NEW FIELDS -->
@@ -547,15 +557,27 @@
                 </div>
                 <div>
                     <h4 class="font-bold mb-6 text-brand-gold">Discover</h4>
-                    <ul class="space-y-3 text-sm text-gray-400"><li>Destinations</li><li>Wellness</li><li>Family</li></ul>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li onclick="scrollToPackages()" class="hover:text-white cursor-pointer transition-colors">Destinations</li>
+                        <li onclick="scrollToPackages()" class="hover:text-white cursor-pointer transition-colors">Wellness</li>
+                        <li onclick="scrollToPackages()" class="hover:text-white cursor-pointer transition-colors">Family</li>
+                    </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-6 text-brand-gold">Support</h4>
-                    <ul class="space-y-3 text-sm text-gray-400"><li>Manage Booking</li><li>Contact Us</li><li>Insurance</li></ul>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li onclick="router.navigate('contact')" class="hover:text-white cursor-pointer transition-colors">Manage Booking</li>
+                        <li onclick="router.navigate('contact')" class="hover:text-white cursor-pointer transition-colors">Contact Us</li>
+                        <li onclick="alert('Insurance partner portal coming soon.')" class="hover:text-white cursor-pointer transition-colors">Insurance</li>
+                    </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-6 text-brand-gold">Legal</h4>
-                    <ul class="space-y-3 text-sm text-gray-400"><li>Privacy Policy</li><li>Terms</li><li>Cookies</li></ul>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li onclick="alert('Privacy Policy Coming Soon')" class="hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
+                        <li onclick="alert('Terms Coming Soon')" class="hover:text-white cursor-pointer transition-colors">Terms</li>
+                        <li onclick="alert('Cookies Policy Coming Soon')" class="hover:text-white cursor-pointer transition-colors">Cookies</li>
+                    </ul>
                 </div>
             </div>
             <div class="border-t border-gray-800 pt-8 flex justify-between items-center text-xs text-gray-500">
