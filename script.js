@@ -39,10 +39,22 @@ const DEFAULT_PACKAGES = [
 ];
 
 // Load Data from LocalStorage
-let appData = JSON.parse(localStorage.getItem('tgf_packages'));
-if (!appData || appData.length === 0) {
+let appData = [];
+try {
+    const storedData = localStorage.getItem('tgf_packages');
+    appData = storedData ? JSON.parse(storedData) : [];
+} catch (e) {
+    console.error("Error loading data", e);
+}
+
+if (appData.length === 0) {
     appData = DEFAULT_PACKAGES;
-    localStorage.setItem('tgf_packages', JSON.stringify(appData));
+    // Try saving default data, but don't crash if it fails
+    try {
+        localStorage.setItem('tgf_packages', JSON.stringify(appData));
+    } catch (e) {
+        console.warn("Could not save default data to storage.");
+    }
 }
 
 // --- ROUTER ---
@@ -82,10 +94,15 @@ const router = {
                 offerManager.renderAdminForm();
                 
                 // Reset Itinerary Builder for new entry
-                document.getElementById('itinerary-builder-container').innerHTML = '';
-                dataManager.addItineraryDay(); // Add 1 empty day by default
+                const builder = document.getElementById('itinerary-builder-container');
+                if(builder) {
+                    builder.innerHTML = '';
+                    dataManager.itineraryCount = 0;
+                    dataManager.addItineraryDay(); // Add 1 empty day by default
+                }
             }
         } else {
+            // Detail / Contact / About
             nav.classList.remove('text-white', 'bg-transparent', 'hidden');
             nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
 
@@ -94,6 +111,8 @@ const router = {
                 document.getElementById('view-detail').classList.remove('hidden');
             } else if (page === 'contact') {
                 document.getElementById('view-contact').classList.remove('hidden');
+            } else if (page === 'about') {
+                document.getElementById('view-about').classList.remove('hidden');
             }
         }
         window.scrollTo(0, 0);
@@ -145,9 +164,12 @@ const offerManager = {
     },
 
     renderAdminForm: () => {
-        document.getElementById('offer-text-input').value = offerManager.data.text || '';
-        document.getElementById('offer-code-input').value = offerManager.data.code || '';
-        document.getElementById('offer-active-input').checked = offerManager.data.active;
+        const textInput = document.getElementById('offer-text-input');
+        if(textInput) {
+            textInput.value = offerManager.data.text || '';
+            document.getElementById('offer-code-input').value = offerManager.data.code || '';
+            document.getElementById('offer-active-input').checked = offerManager.data.active;
+        }
     },
 
     renderBar: () => {
@@ -204,72 +226,89 @@ const dataManager = {
             return;
         }
 
+        // Check file size (limit to 2MB for safety)
+        if (file.size > 2000000) {
+            alert("Image is too large! Please upload an image smaller than 2MB to prevent storage errors.");
+            return;
+        }
+
         const reader = new FileReader();
 
         reader.onload = function(event) {
-            const imageBase64 = event.target.result;
+            try {
+                const imageBase64 = event.target.result;
 
-            const rawPrice = document.getElementById('pkg-price').value;
-            const formattedPrice = '₹' + new Intl.NumberFormat('en-IN').format(rawPrice);
-            
-            const inclusionsRaw = document.getElementById('pkg-inclusions').value;
-            const inclusionsList = inclusionsRaw.split(',').map(item => item.trim()).filter(i => i);
-            
-            const destinationsRaw = document.getElementById('pkg-destinations').value;
-            const destinationsList = destinationsRaw.split(',').map(item => item.trim()).filter(i => i);
+                const rawPrice = document.getElementById('pkg-price').value;
+                const formattedPrice = '₹' + new Intl.NumberFormat('en-IN').format(rawPrice);
+                
+                const inclusionsRaw = document.getElementById('pkg-inclusions').value;
+                const inclusionsList = inclusionsRaw.split(',').map(item => item.trim()).filter(i => i);
+                
+                const destinationsRaw = document.getElementById('pkg-destinations').value;
+                const destinationsList = destinationsRaw.split(',').map(item => item.trim()).filter(i => i);
 
-            const accommodationsRaw = document.getElementById('pkg-accommodations').value;
-            const accommodationsList = accommodationsRaw.split(',').map(item => item.trim()).filter(i => i);
+                const accommodationsRaw = document.getElementById('pkg-accommodations').value;
+                const accommodationsList = accommodationsRaw.split(',').map(item => item.trim()).filter(i => i);
 
-            // Parse Itinerary from Dynamic Inputs
-            const itineraryList = [];
-            const container = document.getElementById('itinerary-builder-container');
-            const dayRows = container.querySelectorAll('div[id^="day-row-"]');
-            
-            dayRows.forEach((row, index) => {
-                const titleInput = row.querySelector('input');
-                const descInput = row.querySelector('textarea');
-                if(titleInput.value && descInput.value) {
-                    itineraryList.push({
-                        day: index + 1,
-                        title: titleInput.value,
-                        desc: descInput.value
-                    });
+                // Parse Itinerary from Dynamic Inputs
+                const itineraryList = [];
+                const container = document.getElementById('itinerary-builder-container');
+                const dayRows = container.querySelectorAll('div[id^="day-row-"]');
+                
+                dayRows.forEach((row, index) => {
+                    const titleInput = row.querySelector('input');
+                    const descInput = row.querySelector('textarea');
+                    if(titleInput && descInput && titleInput.value && descInput.value) {
+                        itineraryList.push({
+                            day: index + 1,
+                            title: titleInput.value,
+                            desc: descInput.value
+                        });
+                    }
+                });
+
+                if(itineraryList.length === 0) {
+                    alert("Please add at least one itinerary day with Title and Description.");
+                    return;
                 }
-            });
 
-            if(itineraryList.length === 0) {
-                alert("Please add at least one itinerary day.");
-                return;
+                const newPkg = {
+                    id: Date.now(), 
+                    title: document.getElementById('pkg-title').value,
+                    tagline: document.getElementById('pkg-tagline').value,
+                    price: formattedPrice,
+                    priceUnit: document.getElementById('pkg-unit').value,
+                    duration: document.getElementById('pkg-duration').value,
+                    pax: document.getElementById('pkg-pax').value,
+                    category: document.getElementById('pkg-cat').value,
+                    image: imageBase64, 
+                    inclusions: inclusionsList,
+                    destinations: destinationsList,
+                    accommodations: accommodationsList,
+                    itinerary: itineraryList
+                };
+
+                // Try to save
+                appData.push(newPkg);
+                localStorage.setItem('tgf_packages', JSON.stringify(appData));
+
+                alert('Package Published Successfully!');
+                e.target.reset();
+                document.getElementById('itinerary-builder-container').innerHTML = '';
+                dataManager.itineraryCount = 0;
+                dataManager.addItineraryDay(); // Reset to 1 day
+                
+                dataManager.renderAdminList();
+                renderGrid(); 
+
+            } catch (error) {
+                console.error(error);
+                if (error.name === 'QuotaExceededError') {
+                    alert("Storage Limit Reached! The image you tried to upload is too large for the browser's local storage. Please try a much smaller image or a low-quality screenshot.");
+                } else {
+                    alert("An error occurred while saving: " + error.message);
+                }
             }
-
-            const newPkg = {
-                id: Date.now(), 
-                title: document.getElementById('pkg-title').value,
-                tagline: document.getElementById('pkg-tagline').value,
-                price: formattedPrice,
-                priceUnit: document.getElementById('pkg-unit').value,
-                duration: document.getElementById('pkg-duration').value,
-                pax: document.getElementById('pkg-pax').value,
-                category: document.getElementById('pkg-cat').value,
-                image: imageBase64, 
-                inclusions: inclusionsList,
-                destinations: destinationsList,
-                accommodations: accommodationsList,
-                itinerary: itineraryList
-            };
-
-            appData.push(newPkg);
-            localStorage.setItem('tgf_packages', JSON.stringify(appData));
-
-            alert('Package Published Successfully!');
-            e.target.reset();
-            document.getElementById('itinerary-builder-container').innerHTML = '';
-            dataManager.itineraryCount = 0;
-            dataManager.addItineraryDay(); // Reset to 1 day
-            
-            dataManager.renderAdminList();
-            renderGrid(); 
         };
 
         reader.readAsDataURL(file);
