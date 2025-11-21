@@ -59,6 +59,7 @@
             <!-- Desktop Menu -->
             <div class="hidden md:flex items-center gap-8 text-sm font-medium">
                 <button onclick="router.navigate('home')" class="hover:text-brand-gold transition-colors">Home</button>
+                <button onclick="router.navigate('about')" class="hover:text-brand-gold transition-colors">About Us</button>
                 <button onclick="scrollToPackages()" class="hover:text-brand-gold transition-colors">Packages</button>
                 <button onclick="router.navigate('contact')" class="hover:text-brand-gold transition-colors">Contact</button>
                 <button onclick="tripBuilder.open()" class="px-5 py-2 rounded-full bg-white text-brand-charcoal hover:bg-brand-gold hover:text-white transition-all font-medium">
@@ -79,6 +80,7 @@
         <!-- Mobile Menu Dropdown -->
         <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-brand-charcoal border-t border-gray-800 p-6 flex flex-col gap-4 text-white shadow-xl">
             <button onclick="router.navigate('home')" class="text-left">Home</button>
+            <button onclick="router.navigate('about')" class="text-left">About Us</button>
             <button onclick="scrollToPackages()" class="text-left">Packages</button>
             <button onclick="router.navigate('contact')" class="text-left">Contact</button>
             <button onclick="tripBuilder.open()" class="text-brand-gold text-left">AI Trip Planner</button>
@@ -123,41 +125,6 @@
                 </div>
             </header>
 
-            <!-- About Section -->
-            <section class="py-20 bg-white">
-                <div class="container mx-auto px-6">
-                    <div class="grid md:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <h3 class="text-brand-gold font-bold tracking-widest uppercase mb-2">About Us</h3>
-                            <h2 class="text-4xl font-bold text-brand-charcoal mb-6">Curated Journeys. <br/>Crafted Comfort.</h2>
-                            <p class="text-gray-600 mb-6 leading-relaxed">
-                                We are a hospitality curator blending refined comfort with destination expertise. Each package is handcrafted to deliver authentic local experiences.
-                            </p>
-                            <div class="grid grid-cols-2 gap-6 mt-8">
-                                <div class="flex items-start gap-3">
-                                    <i data-lucide="star" class="text-brand-gold w-6 h-6 mt-1"></i>
-                                    <div>
-                                        <h4 class="font-bold text-brand-charcoal">5-Star Service</h4>
-                                        <p class="text-sm text-gray-500">Concierge grade.</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-3">
-                                    <i data-lucide="globe" class="text-brand-gold w-6 h-6 mt-1"></i>
-                                    <div>
-                                        <h4 class="font-bold text-brand-charcoal">Local Experts</h4>
-                                        <p class="text-sm text-gray-500">Authentic experiences.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <div class="absolute -top-4 -left-4 w-full h-full border-2 border-brand-gold rounded-2xl"></div>
-                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" alt="Concierge" class="rounded-2xl shadow-xl relative z-10 w-full">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <!-- Packages Grid -->
             <section id="packages-section" class="py-20 bg-brand-stone">
                 <div class="container mx-auto px-6">
@@ -198,6 +165,125 @@
             </section>
         </div>
 
+        <!-- ABOUT VIEW (New) -->
+        <div id="view-about" class="view-section hidden bg-white pt-24 pb-20">
+            <div class="container mx-auto px-6">
+                
+                <!-- Hero Banner -->
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-brand-gold font-bold tracking-widest uppercase text-sm">Who We Are</span>
+                    <h1 class="text-4xl md:text-5xl font-serif font-bold text-brand-charcoal mt-3 mb-6">
+                        Favourite The Holiday Makers
+                    </h1>
+                    <p class="text-gray-500 text-lg leading-relaxed">
+                        We don't just plan trips; we craft memories. As your trusted holiday makers, we believe that every journey should be a masterpiece of comfort, adventure, and style.
+                    </p>
+                    <div class="h-1 w-20 bg-brand-gold mt-8 mx-auto"></div>
+                </div>
+
+                <!-- Why Choose Us Grid -->
+                <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
+                    <div class="relative">
+                        <div class="absolute -top-4 -left-4 w-full h-full border-2 border-brand-gold rounded-2xl"></div>
+                        <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80" alt="Travel Team" class="rounded-2xl shadow-xl relative z-10 w-full h-96 object-cover">
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-serif font-bold text-brand-charcoal mb-6">Why we are the best?</h3>
+                        <ul class="space-y-6">
+                            <li class="flex gap-4">
+                                <div class="w-12 h-12 flex-shrink-0 bg-brand-stone rounded-full flex items-center justify-center text-brand-gold">
+                                    <i data-lucide="gem" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Unmatched Packages</h4>
+                                    <p class="text-gray-500 text-sm">From luxury villas to adventure treks, our packages are curated by experts who know the destinations inside out.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <div class="w-12 h-12 flex-shrink-0 bg-brand-stone rounded-full flex items-center justify-center text-brand-gold">
+                                    <i data-lucide="smile" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Customer Obsessed</h4>
+                                    <p class="text-gray-500 text-sm">We are "Favourite The Holiday Makers" for a reason. Your happiness is our only metric of success.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <div class="w-12 h-12 flex-shrink-0 bg-brand-stone rounded-full flex items-center justify-center text-brand-gold">
+                                    <i data-lucide="map" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Seamless Experiences</h4>
+                                    <p class="text-gray-500 text-sm">Accommodations, travel, and itinerary planning handled with precision.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Testimonials -->
+                <div class="bg-brand-stone rounded-3xl p-8 md:p-16">
+                    <h3 class="text-center text-3xl font-serif font-bold text-brand-charcoal mb-12">What Our Travelers Say</h3>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <!-- Review 1 -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <div class="flex text-brand-gold mb-4">
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            </div>
+                            <p class="text-gray-600 italic mb-6">"Absolutely the best holiday experience we've ever had. The attention to detail was incredible."</p>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">AS</div>
+                                <div>
+                                    <p class="font-bold text-sm">Anjali S.</p>
+                                    <p class="text-xs text-gray-400">Traveled to Goa</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Review 2 -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <div class="flex text-brand-gold mb-4">
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            </div>
+                            <p class="text-gray-600 italic mb-6">"Favourite The Holiday Makers truly lived up to their name. The Dubai package was seamless and luxurious."</p>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">RM</div>
+                                <div>
+                                    <p class="font-bold text-sm">Rahul M.</p>
+                                    <p class="text-xs text-gray-400">Traveled to Dubai</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Review 3 -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <div class="flex text-brand-gold mb-4">
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            </div>
+                            <p class="text-gray-600 italic mb-6">"Everything was taken care of. I just had to pack my bags and enjoy. Highly recommended!"</p>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">PK</div>
+                                <div>
+                                    <p class="font-bold text-sm">Priya K.</p>
+                                    <p class="text-xs text-gray-400">Traveled to Jaipur</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- DETAIL VIEW -->
         <div id="view-detail" class="view-section hidden bg-brand-stone min-h-screen pb-20 pt-20">
             <!-- Content injected via JS -->
@@ -208,12 +294,45 @@
              <div class="container mx-auto px-6">
                 <div class="mb-12 text-center max-w-4xl mx-auto">
                     <h2 class="text-3xl md:text-4xl font-bold text-brand-charcoal mb-4">Contact & Support</h2>
-                    <p class="text-brand-teal text-lg font-light">For reservations, groups, or partnerships.</p>
+                    <p class="text-brand-teal text-lg font-light">Visit us or drop a message.</p>
                     <div class="h-1 w-20 bg-brand-gold mt-6 mx-auto"></div>
                 </div>
                 
                 <div class="grid lg:grid-cols-2 gap-12 mt-12">
-                    <div class="bg-brand-stone p-8 rounded-2xl">
+                    <!-- Contact Info & Map -->
+                    <div class="space-y-8 order-2 lg:order-1">
+                        <div>
+                            <h4 class="text-xl font-serif font-bold mb-4">Head Office</h4>
+                            <div class="flex items-start gap-3 text-gray-600">
+                                <i data-lucide="map-pin" class="w-5 h-5 text-brand-gold mt-1 flex-shrink-0"></i>
+                                <p>
+                                    128 Titanium City Center Mall,<br>
+                                    100 ft Anand Nagar road, Nr. Sachin Tower,<br>
+                                    Satellite, Anand Nagar, Prahlad Nagar,<br>
+                                    Ahmedabad, Gujarat 380015
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full h-64 bg-gray-200 rounded-xl overflow-hidden shadow-md">
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3672.164077042227!2d72.51546231496767!3d23.01776798495538!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e9b2eac155555%3A0x4466666666666666!2sTitanium%20City%20Center%20Mall!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin" 
+                                width="100%" 
+                                height="100%" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy">
+                            </iframe>
+                        </div>
+
+                        <div class="p-6 bg-brand-charcoal text-white rounded-xl">
+                            <h5 class="font-bold mb-2 text-brand-gold">Office Hours</h5>
+                            <p class="text-sm text-gray-400">Mon - Sat: 10:00 - 19:00 IST</p>
+                        </div>
+                    </div>
+
+                    <!-- Form -->
+                    <div class="bg-brand-stone p-8 rounded-2xl order-1 lg:order-2">
                         <form class="space-y-6" onsubmit="event.preventDefault(); alert('Message sent!');">
                             <div class="grid md:grid-cols-2 gap-6">
                                 <div>
@@ -236,16 +355,6 @@
                             <textarea rows="4" class="form-input" placeholder="How can we help?"></textarea>
                             <button class="w-full py-3 bg-brand-gold text-white rounded-full font-medium hover:shadow-lg transition-all">Send Message</button>
                         </form>
-                    </div>
-                    <div class="space-y-8 pt-4">
-                        <div>
-                            <h4 class="text-xl font-serif font-bold mb-4">Head Office</h4>
-                            <p class="text-gray-600">The Grand Favourait<br/>12 Heritage Lane, Jaipur, Rajasthan, India</p>
-                        </div>
-                        <div class="p-6 bg-brand-charcoal text-white rounded-xl">
-                            <h5 class="font-bold mb-2 text-brand-gold">Office Hours</h5>
-                            <p class="text-sm text-gray-400">Mon - Sat: 09:00 - 18:00 IST</p>
-                        </div>
                     </div>
                 </div>
             </div>
