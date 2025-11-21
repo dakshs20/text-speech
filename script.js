@@ -10,7 +10,7 @@ const DEFAULT_PACKAGES = [
         duration: "5 nights",
         pax: "2 Adults",
         category: "Luxury",
-        subCategory: "National", // New Field
+        subCategory: "National", // Default data
         destinations: ["Goa", "South Goa"],
         accommodations: ["Taj Exotica (5 Star)", "Private Villa"],
         inclusions: ["Premium sea-view suite", "Daily breakfast", "Private sunset cruise"],
@@ -29,7 +29,7 @@ const DEFAULT_PACKAGES = [
         duration: "4 nights",
         pax: "2 Adults, 2 Kids",
         category: "Family",
-        subCategory: "International", // New Field
+        subCategory: "International", // Default data
         destinations: ["Dubai", "Yas Island"],
         accommodations: ["Atlantis The Palm", "Yas Viceroy"],
         inclusions: ["Family suite", "Kids’ activity pass", "Theme-park day"],
@@ -51,7 +51,7 @@ try {
 
 if (appData.length === 0) {
     appData = DEFAULT_PACKAGES;
-    // Try saving default data, but don't crash if it fails
+    // Try saving default data
     try {
         localStorage.setItem('tgf_packages', JSON.stringify(appData));
     } catch (e) {
@@ -81,7 +81,6 @@ const router = {
             nav.classList.add('hidden');
             if(page === 'admin-dashboard') nav.classList.remove('hidden'); 
             
-            // Render Admin View
             if (page === 'admin-login') {
                 document.getElementById('view-admin-login').classList.remove('hidden');
             } else if (page === 'admin-dashboard') {
@@ -95,16 +94,14 @@ const router = {
                 dataManager.renderAdminList();
                 offerManager.renderAdminForm();
                 
-                // Reset Itinerary Builder for new entry
                 const builder = document.getElementById('itinerary-builder-container');
                 if(builder) {
                     builder.innerHTML = '';
                     dataManager.itineraryCount = 0;
-                    dataManager.addItineraryDay(); // Add 1 empty day by default
+                    dataManager.addItineraryDay();
                 }
             }
         } else {
-            // Detail / Contact / About
             nav.classList.remove('text-white', 'bg-transparent', 'hidden');
             nav.classList.add('bg-white', 'text-brand-charcoal', 'shadow-lg');
 
@@ -195,7 +192,7 @@ const offerManager = {
     }
 };
 
-// --- DATA MANAGER (Admin Actions) ---
+// --- DATA MANAGER ---
 const dataManager = {
     itineraryCount: 0,
 
@@ -228,7 +225,6 @@ const dataManager = {
             return;
         }
 
-        // Check file size (limit to 2MB for safety)
         if (file.size > 2000000) {
             alert("Image is too large! Please upload an image smaller than 2MB to prevent storage errors.");
             return;
@@ -252,7 +248,6 @@ const dataManager = {
                 const accommodationsRaw = document.getElementById('pkg-accommodations').value;
                 const accommodationsList = accommodationsRaw.split(',').map(item => item.trim()).filter(i => i);
 
-                // Parse Itinerary from Dynamic Inputs
                 const itineraryList = [];
                 const container = document.getElementById('itinerary-builder-container');
                 const dayRows = container.querySelectorAll('div[id^="day-row-"]');
@@ -283,7 +278,7 @@ const dataManager = {
                     duration: document.getElementById('pkg-duration').value,
                     pax: document.getElementById('pkg-pax').value,
                     category: document.getElementById('pkg-cat').value,
-                    subCategory: document.getElementById('pkg-subcategory').value, // Save Sub Category
+                    subCategory: document.getElementById('pkg-subcategory').value, // Correctly Capture Sub Category
                     image: imageBase64, 
                     inclusions: inclusionsList,
                     destinations: destinationsList,
@@ -291,7 +286,6 @@ const dataManager = {
                     itinerary: itineraryList
                 };
 
-                // Try to save
                 appData.push(newPkg);
                 localStorage.setItem('tgf_packages', JSON.stringify(appData));
 
@@ -299,7 +293,7 @@ const dataManager = {
                 e.target.reset();
                 document.getElementById('itinerary-builder-container').innerHTML = '';
                 dataManager.itineraryCount = 0;
-                dataManager.addItineraryDay(); // Reset to 1 day
+                dataManager.addItineraryDay();
                 
                 dataManager.renderAdminList();
                 renderGrid(); 
@@ -332,13 +326,21 @@ const dataManager = {
             list.innerHTML = '<p class="text-gray-500 text-center">No active packages.</p>';
             return;
         }
-        list.innerHTML = appData.map(pkg => `
+        list.innerHTML = appData.map(pkg => {
+            // Visual check for admin list
+            const isInt = pkg.subCategory === 'International';
+            const icon = isInt ? 'plane' : 'flag';
+            const badgeColor = isInt ? 'text-blue-600 bg-blue-50' : 'text-orange-600 bg-orange-50';
+
+            return `
             <div class="admin-pkg-card">
                 <img src="${pkg.image}" class="admin-pkg-img" alt="thumb">
                 <div class="flex-1">
                     <h4 class="font-bold text-brand-charcoal">${pkg.title}</h4>
-                    <div class="flex gap-2 mt-1">
-                        <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${pkg.subCategory || 'National'}</span>
+                    <div class="flex gap-2 mt-1 items-center">
+                        <span class="text-xs ${badgeColor} px-2 py-0.5 rounded flex items-center gap-1 font-medium">
+                            <i data-lucide="${icon}" class="w-3 h-3"></i> ${pkg.subCategory || 'National'}
+                        </span>
                         <span class="text-xs text-gray-500">${pkg.price} · ${pkg.duration}</span>
                     </div>
                 </div>
@@ -346,7 +348,7 @@ const dataManager = {
                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                 </button>
             </div>
-        `).join('');
+        `}).join('');
         lucide.createIcons();
     }
 };
@@ -366,15 +368,21 @@ function scrollToPackages() {
 
 function renderGrid() {
     const grid = document.getElementById('packages-grid');
-    grid.innerHTML = appData.map(pkg => `
+    grid.innerHTML = appData.map(pkg => {
+        // Dynamic Icons for Grid
+        const isInternational = pkg.subCategory === 'International';
+        const locIcon = isInternational ? 'plane' : 'flag';
+        const locBadgeClass = isInternational ? 'bg-blue-600' : 'bg-orange-500';
+
+        return `
         <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer" onclick="router.navigate('detail', ${pkg.id})">
             <div class="relative h-64 overflow-hidden">
                 <img src="${pkg.image}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                 <div class="absolute top-4 right-4 flex gap-2">
-                    <span class="bg-brand-charcoal/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-white">
-                        ${pkg.subCategory || 'National'}
+                    <span class="${locBadgeClass} backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1 shadow-md">
+                        <i data-lucide="${locIcon}" class="w-3 h-3"></i> ${pkg.subCategory || 'National'}
                     </span>
-                    <span class="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-charcoal">
+                    <span class="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-charcoal shadow-md">
                         ${pkg.category}
                     </span>
                 </div>
@@ -403,13 +411,17 @@ function renderGrid() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
     lucide.createIcons();
 }
 
 function renderDetail(id) {
     const pkg = appData.find(p => p.id === id);
     if(!pkg) return;
+
+    const isInternational = pkg.subCategory === 'International';
+    const locIcon = isInternational ? 'plane' : 'flag';
+    const locBadgeClass = isInternational ? 'bg-blue-600 text-white' : 'bg-orange-500 text-white';
 
     const container = document.getElementById('view-detail');
     container.innerHTML = `
@@ -422,7 +434,9 @@ function renderDetail(id) {
                     </button>
                     <div class="flex gap-2 mb-4">
                         <div class="bg-brand-gold text-xs font-bold px-3 py-1 inline-block rounded">${pkg.category} Collection</div>
-                        <div class="bg-white text-brand-charcoal text-xs font-bold px-3 py-1 inline-block rounded">${pkg.subCategory || 'National'}</div>
+                        <div class="${locBadgeClass} text-xs font-bold px-3 py-1 inline-block rounded flex items-center gap-1">
+                            <i data-lucide="${locIcon}" class="w-3 h-3"></i> ${pkg.subCategory || 'National'}
+                        </div>
                     </div>
                     <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4">${pkg.title}</h1>
                 </div>
@@ -442,7 +456,7 @@ function renderDetail(id) {
                         <div class="mb-6">
                             <h4 class="font-bold text-lg mb-3 flex items-center gap-2"><i data-lucide="map" class="text-brand-teal w-5 h-5"></i> Destinations Covered</h4>
                             <div class="flex flex-wrap gap-2">
-                                ${pkg.destinations.map(d => `<span class="px-3 py-1 bg-blue-50 text-blue-800 rounded-full text-sm font-medium">${d}</span>`).join('')}
+                                ${pkg.destinations.map(d => `<span class="px-3 py-1 bg-blue-50 text-blue-800 rounded-full text-sm font-medium border border-blue-100">${d}</span>`).join('')}
                             </div>
                         </div>
                         ` : ''}
