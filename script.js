@@ -10,6 +10,7 @@ const DEFAULT_PACKAGES = [
         duration: "5 nights",
         pax: "2 Adults",
         category: "Luxury",
+        subCategory: "National", // New Field
         destinations: ["Goa", "South Goa"],
         accommodations: ["Taj Exotica (5 Star)", "Private Villa"],
         inclusions: ["Premium sea-view suite", "Daily breakfast", "Private sunset cruise"],
@@ -28,6 +29,7 @@ const DEFAULT_PACKAGES = [
         duration: "4 nights",
         pax: "2 Adults, 2 Kids",
         category: "Family",
+        subCategory: "International", // New Field
         destinations: ["Dubai", "Yas Island"],
         accommodations: ["Atlantis The Palm", "Yas Viceroy"],
         inclusions: ["Family suite", "Kids’ activity pass", "Theme-park day"],
@@ -281,6 +283,7 @@ const dataManager = {
                     duration: document.getElementById('pkg-duration').value,
                     pax: document.getElementById('pkg-pax').value,
                     category: document.getElementById('pkg-cat').value,
+                    subCategory: document.getElementById('pkg-subcategory').value, // Save Sub Category
                     image: imageBase64, 
                     inclusions: inclusionsList,
                     destinations: destinationsList,
@@ -334,7 +337,10 @@ const dataManager = {
                 <img src="${pkg.image}" class="admin-pkg-img" alt="thumb">
                 <div class="flex-1">
                     <h4 class="font-bold text-brand-charcoal">${pkg.title}</h4>
-                    <p class="text-xs text-gray-500">${pkg.price} · ${pkg.duration}</p>
+                    <div class="flex gap-2 mt-1">
+                        <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${pkg.subCategory || 'National'}</span>
+                        <span class="text-xs text-gray-500">${pkg.price} · ${pkg.duration}</span>
+                    </div>
                 </div>
                 <button onclick="dataManager.deletePackage(${pkg.id})" class="text-red-500 hover:bg-red-50 p-2 rounded">
                     <i data-lucide="trash-2" class="w-5 h-5"></i>
@@ -364,8 +370,13 @@ function renderGrid() {
         <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer" onclick="router.navigate('detail', ${pkg.id})">
             <div class="relative h-64 overflow-hidden">
                 <img src="${pkg.image}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-charcoal">
-                    ${pkg.category}
+                <div class="absolute top-4 right-4 flex gap-2">
+                    <span class="bg-brand-charcoal/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-white">
+                        ${pkg.subCategory || 'National'}
+                    </span>
+                    <span class="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-charcoal">
+                        ${pkg.category}
+                    </span>
                 </div>
             </div>
             <div class="p-6">
@@ -409,7 +420,10 @@ function renderDetail(id) {
                     <button onclick="router.navigate('home')" class="mb-6 flex items-center gap-2 hover:text-brand-gold transition-colors">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to collections
                     </button>
-                    <div class="bg-brand-gold text-xs font-bold px-3 py-1 inline-block rounded mb-4">${pkg.category} Collection</div>
+                    <div class="flex gap-2 mb-4">
+                        <div class="bg-brand-gold text-xs font-bold px-3 py-1 inline-block rounded">${pkg.category} Collection</div>
+                        <div class="bg-white text-brand-charcoal text-xs font-bold px-3 py-1 inline-block rounded">${pkg.subCategory || 'National'}</div>
+                    </div>
                     <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4">${pkg.title}</h1>
                 </div>
             </div>
