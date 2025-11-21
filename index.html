@@ -165,10 +165,9 @@
             </section>
         </div>
 
-        <!-- ABOUT VIEW (New) -->
+        <!-- ABOUT VIEW -->
         <div id="view-about" class="view-section hidden bg-white pt-24 pb-20">
             <div class="container mx-auto px-6">
-                
                 <!-- Hero Banner -->
                 <div class="text-center max-w-3xl mx-auto mb-16">
                     <span class="text-brand-gold font-bold tracking-widest uppercase text-sm">Who We Are</span>
@@ -225,7 +224,6 @@
                 <div class="bg-brand-stone rounded-3xl p-8 md:p-16">
                     <h3 class="text-center text-3xl font-serif font-bold text-brand-charcoal mb-12">What Our Travelers Say</h3>
                     <div class="grid md:grid-cols-3 gap-8">
-                        <!-- Review 1 -->
                         <div class="bg-white p-6 rounded-xl shadow-sm">
                             <div class="flex text-brand-gold mb-4">
                                 <i data-lucide="star" class="w-4 h-4 fill-current"></i>
@@ -243,7 +241,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Review 2 -->
                         <div class="bg-white p-6 rounded-xl shadow-sm">
                             <div class="flex text-brand-gold mb-4">
                                 <i data-lucide="star" class="w-4 h-4 fill-current"></i>
@@ -261,7 +258,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Review 3 -->
                         <div class="bg-white p-6 rounded-xl shadow-sm">
                             <div class="flex text-brand-gold mb-4">
                                 <i data-lucide="star" class="w-4 h-4 fill-current"></i>
@@ -467,17 +463,16 @@
                                             <option>Adventure</option>
                                         </select>
                                     </div>
-                                    <!-- NEW: Sub-Category Select -->
+                                    <!-- UPDATED: Visually clear Sub-Category -->
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Location Type</label>
-                                        <select id="pkg-subcategory" class="form-input text-sm">
-                                            <option>National</option>
-                                            <option>International</option>
+                                        <select id="pkg-subcategory" class="form-input text-sm bg-gray-50">
+                                            <option value="National">🇮🇳 National</option>
+                                            <option value="International">✈️ International</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <!-- NEW FIELDS -->
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Destinations (Comma Separated)</label>
                                     <input type="text" id="pkg-destinations" required class="form-input text-sm" placeholder="Paris, Rome, Venice">
